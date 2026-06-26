@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <title>DASHMIN - Chi tiết đơn hàng</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <link th:href="@{/img/favicon.ico}" rel="icon">
+    <link th:href="@{/admin/lib/owlcarousel/assets/owl.carousel.min.css}" rel="stylesheet">
+    <link th:href="@{/admin/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css}" rel="stylesheet" />
+    <link th:href="@{/admin/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/admin/css/style.css}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #009CFF; 
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #007acc; 
+        }
+        
+        /* Hiệu ứng nảy nhẹ cho thẻ sản phẩm */
+        .product-item-card {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .product-item-card:hover {
+            transform: scale(1.01);
+            border-left-color: #009CFF;
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.08)!important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-xxl position-relative bg-white d-flex p-0">
+        <div class="sidebar pe-4 pb-3">
+            <nav class="navbar bg-light navbar-light">
+                <a th:href="@{/admin/orders}" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary"><i class="fa fa-hashtag me-2"></i>DASHMIN</h3>
+                </a>
+                <div class="d-flex align-items-center ms-4 mb-4">
+                    <div class="position-relative">
+                        <img class="rounded-circle" th:src="@{/img/user.jpg}" alt="" style="width: 40px; height: 40px;">
+                        <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0">Admin</h6>
+                        <span>Quản trị viên</span>
+                    </div>
+                </div>
+                <div class="navbar-nav w-100">
+                    <a href="#" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a th:href="@{/admin/categories}" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Danh mục</a>
+                    <a th:href="@{/admin/products}" class="nav-item nav-link"><i class="fa fa-box me-2"></i>Sản phẩm</a>
+                    <a th:href="@{/admin/users}" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Người dùng</a>
+                    <a th:href="@{/admin/orders}" class="nav-item nav-link active"><i class="fa fa-shopping-cart me-2"></i>Đơn hàng</a>
+                </div>
+            </nav>
+        </div>
+        <div class="content">
+            <nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0">
+                <a href="#" class="navbar-brand d-flex d-lg-none me-4">
+                    <h2 class="text-primary mb-0"><i class="fa fa-hashtag"></i></h2>
+                </a>
+                <a href="#" class="sidebar-toggler flex-shrink-0">
+                    <i class="fa fa-bars"></i>
+                </a>
+                <div class="navbar-nav align-items-center ms-auto">
+                    <div class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" th:src="@{/img/user.jpg}" alt="" style="width: 40px; height: 40px;">
+                            <span class="d-none d-lg-inline-flex">Admin</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                            <a href="#" class="dropdown-item">Đăng xuất</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid pt-4 px-4">
+                
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="mb-0 text-dark"><i class="fa fa-file-invoice me-2 text-primary"></i>Chi Tiết Đơn Hàng</h4>
+                    <a th:href="@{/admin/orders}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fa fa-arrow-left me-2"></i>Quay lại
+                    </a>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-sm-12 col-xl-6">
+                        <div class="bg-light rounded h-100 p-4 shadow-sm border-0">
+                            <h6 class="mb-4 text-uppercase fw-bold text-muted"><i class="fa fa-user-circle me-2 text-primary"></i>Thông tin vận chuyển</h6>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                    <i class="fa fa-hashtag text-primary"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Mã hệ thống</small>
+                                    <strong class="text-dark" th:text="${order.id}"></strong>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                    <i class="fa fa-phone-alt text-success"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Số điện thoại liên hệ</small>
+                                    <strong class="text-dark fs-5" th:text="${order.phone}"></strong>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                    <i class="fa fa-map-marker-alt text-danger"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Địa chỉ nhận hàng</small>
+                                    <strong class="text-dark" th:text="${order.shippingAddress}"></strong>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                    <i class="fa fa-clock text-warning"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Thời gian đặt mua</small>
+                                    <strong class="text-dark" th:text="${#dates.format(order.orderDate, 'dd/MM/yyyy - HH:mm')}"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-xl-6">
+                        <div class="bg-light rounded h-100 p-4 shadow-sm border-0 position-relative">
+                            <h6 class="mb-4 text-uppercase fw-bold text-muted"><i class="fa fa-sync-alt me-2 text-primary"></i>Trạng thái đơn hàng</h6>
+                            
+                            <div class="text-center mb-4">
+                                <span class="badge rounded-pill px-4 py-3 fs-6 shadow-sm" 
+                                      th:classappend="${order.status == 'PENDING' ? 'bg-warning' : (order.status == 'SHIPPING' ? 'bg-info' : (order.status == 'COMPLETED' ? 'bg-success' : 'bg-danger'))}">
+                                    <i class="fa me-2" 
+                                       th:classappend="${order.status == 'PENDING' ? 'fa-spinner fa-spin' : (order.status == 'SHIPPING' ? 'fa-truck' : (order.status == 'COMPLETED' ? 'fa-check' : 'fa-times'))}">
+                                    </i>
+                                    <span th:text="${order.status == 'PENDING' ? 'Chờ Xử Lý' : (order.status == 'SHIPPING' ? 'Đang Giao Hàng' : (order.status == 'COMPLETED' ? 'Hoàn Thành' : 'Đã Hủy'))}"></span>
+                                </span>
+                            </div>
+
+                            <form th:action="@{/admin/orders/{id}/update-status(id=${order.id})}" method="post" class="mt-auto">
+                                <div class="bg-white p-3 rounded shadow-sm">
+                                    <label class="form-label text-muted fw-bold">Thao tác cập nhật:</label>
+                                    <div class="input-group">
+                                        <select name="status" class="form-select border-0 bg-light">
+                                            <option value="PENDING" th:selected="${order.status == 'PENDING'}">Chờ xử lý (Pending)</option>
+                                            <option value="SHIPPING" th:selected="${order.status == 'SHIPPING'}">Đang giao hàng (Shipping)</option>
+                                            <option value="COMPLETED" th:selected="${order.status == 'COMPLETED'}">Đã hoàn thành (Completed)</option>
+                                            <option value="CANCELLED" th:selected="${order.status == 'CANCELLED'}">Hủy đơn (Cancelled)</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary px-4"><i class="fa fa-save me-2"></i>Lưu</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="bg-light rounded p-4 shadow-sm border-0">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h6 class="text-uppercase fw-bold text-muted mb-0"><i class="fa fa-box-open me-2 text-primary"></i>Sản phẩm đã mua</h6>
+                                <span class="badge bg-primary rounded-pill px-3 py-2">
+                                    Tổng số: <span th:text="${#lists.size(order.details)}"></span> món
+                                </span>
+                            </div>
+
+                            <div class="custom-scroll pe-2 mb-4" style="max-height: 400px; overflow-y: auto;">
+                                
+                                <div th:each="detail : ${order.details}" class="bg-white rounded p-3 mb-3 shadow-sm border product-item-card d-flex align-items-center flex-wrap flex-md-nowrap">
+                                    
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3 mb-2 mb-md-0" style="width: 70px; height: 70px;">
+                                        <i class="fa fa-tshirt fa-2x text-primary"></i>
+                                    </div>
+                                    
+                                    <div class="flex-grow-1 mb-2 mb-md-0">
+                                        <h6 class="text-dark mb-1 fs-5" th:text="${detail.productName}">Tên sản phẩm</h6>
+                                        <div class="text-muted">
+                                            Đơn giá: <strong class="text-dark" th:text="${#numbers.formatDecimal(detail.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-md-end d-flex d-md-block align-items-center justify-content-between w-100 w-md-auto mt-2 mt-md-0 border-top border-md-0 pt-2 pt-md-0">
+                                        <span class="badge bg-secondary rounded-pill fs-6 px-3 py-2 mb-0 mb-md-2 me-2 me-md-0">
+                                            SL: <span th:text="${detail.quantity}"></span>
+                                        </span>
+                                        <h5 class="mb-0 text-danger" th:text="${#numbers.formatDecimal(detail.price * detail.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></h5>
+                                    </div>
+
+                                </div>
+                                </div>
+                            <div class="bg-white rounded p-4 shadow-sm border d-flex justify-content-between align-items-center">
+                                <h5 class="text-uppercase text-dark mb-0 fw-bold">Tổng thanh toán:</h5>
+                                <h3 class="text-danger mb-0 fw-bold" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></h3>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid pt-4 px-4">
+                <div class="bg-light rounded-top p-4">
+                    <div class="row">
+                        <div class="col-12 text-center text-sm-start">
+                            &copy; <a href="#">Shoppe Fake</a>, All Right Reserved. 
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/admin/lib/chart/chart.min.js}"></script>
+    <script th:src="@{/admin/lib/easing/easing.min.js}"></script>
+    <script th:src="@{/admin/lib/waypoints/waypoints.min.js}"></script>
+    <script th:src="@{/admin/lib/owlcarousel/owl.carousel.min.js}"></script>
+    <script th:src="@{/admin/lib/tempusdominus/js/moment.min.js}"></script>
+    <script th:src="@{/admin/lib/tempusdominus/js/moment-timezone.min.js}"></script>
+    <script th:src="@{/admin/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js}"></script>
+    <script th:src="@{/admin/js/main.js}"></script>
+</body>
+</html>
