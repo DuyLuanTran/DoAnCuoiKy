@@ -45,12 +45,10 @@ public class ProductService {
         productRepository.deleteById(id); 
     }
     
-    // === PHÂN TRANG ===
-    public Page<Product> getAllProductsPaginated(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return productRepository.findAll(pageable);
+    public Page<Product> getAllProductsPaginated(int pageIndex, int size) {
+    Pageable pageable = PageRequest.of(pageIndex, size);
+    return productRepository.findAll(pageable);
     }
-    
     // === TÌM KIẾM + PHÂN TRANG ===
     public Page<Product> searchProducts(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);

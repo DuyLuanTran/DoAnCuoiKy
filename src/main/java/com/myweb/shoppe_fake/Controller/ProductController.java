@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.myweb.shoppe_fake.Model.Product;
 import com.myweb.shoppe_fake.Service.CategoryService;
@@ -83,8 +84,27 @@ public class ProductController {
 
     // --- XÓA SẢN PHẨM ---
     @GetMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable("id") String id) {
+    public String deleteProduct(@PathVariable("id") String id,  RedirectAttributes redirectAttributes) {
+       try {
         productService.deleteProduct(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa sản phẩm thành công!");
         return "redirect:/admin/products";
+
+    } catch (Exception e) {
+        // Dùng getProductById + Optional
+        String productName = productService.getProductById(id)
+                .map(p -> p.getName())   // nếu tìm thấy thì lấy tên
+                .orElse("Không xác định"); // nếu không tìm thấy
+
+        redirectAttributes.addFlashAttribute("errorMessage","Sản phẩm đang tồn tại trong đơn hàng, không thể xóa.");
+        redirectAttributes.addFlashAttribute("productName", productName);
+        redirectAttributes.addFlashAttribute("productId", id);
+        return "redirect:/admin/products/delete-error";
     }
+
+    }
+    @GetMapping("/delete-error")
+    public String deleteError() {
+         return "admin/product/delete-error"; 
+}
 }
