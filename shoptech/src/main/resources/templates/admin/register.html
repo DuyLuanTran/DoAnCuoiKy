@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng ký | ShopTech</title>
+    <link rel="stylesheet" th:href="@{/admin/css/sb-admin-2.min.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/user-management.css}">
+</head>
+<body class="auth-page">
+<main class="auth-card auth-card-wide">
+    <div class="auth-brand">SHOPTECH</div>
+    <h1>Tạo tài khoản</h1>
+    <p class="muted">Điền thông tin để đăng ký tài khoản khách hàng.</p>
+
+    <div class="notice error" th:if="${#fields.hasGlobalErrors()}">
+        <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+    </div>
+    <form th:action="@{/register}" th:object="${registerForm}" method="post">
+        <div class="form-grid">
+            <div class="field">
+                <label for="fullName">Họ và tên</label>
+                <input id="fullName" th:field="*{fullName}" autocomplete="name" required>
+                <small class="field-error" th:errors="*{fullName}"></small>
+            </div>
+            <div class="field">
+                <label for="username">Tên đăng nhập</label>
+                <input id="username" th:field="*{username}" autocomplete="username" minlength="3" maxlength="50" required>
+                <small class="field-error" th:errors="*{username}"></small>
+            </div>
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" th:field="*{email}" type="email" autocomplete="email" maxlength="100" required>
+                <small class="field-error" th:errors="*{email}"></small>
+            </div>
+            <div class="field">
+                <label for="phoneNumber">Số điện thoại</label>
+                <input id="phoneNumber" th:field="*{phoneNumber}" type="tel" autocomplete="tel">
+                <small class="field-error" th:errors="*{phoneNumber}"></small>
+            </div>
+            <div class="field field-full">
+                <label for="address">Địa chỉ</label>
+                <input id="address" th:field="*{address}" autocomplete="street-address" maxlength="255">
+                <small class="field-error" th:errors="*{address}"></small>
+            </div>
+            <div class="field field-full">
+                <label for="password">Mật khẩu (ít nhất 6 ký tự)</label>
+                <input id="password" th:field="*{password}" type="password" autocomplete="new-password" minlength="6" required>
+                <small class="field-error" th:errors="*{password}"></small>
+            </div>
+        </div>
+        <button class="button primary full-width" type="submit">Đăng ký</button>
+    </form>
+    <p class="auth-footer">Đã có tài khoản? <a th:href="@{/login}">Đăng nhập</a></p>
+</main>
+</body>
+</html>

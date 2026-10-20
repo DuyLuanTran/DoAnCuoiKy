@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thùng rác người dùng | ShopTech</title>
+    <link rel="stylesheet" th:href="@{/admin/css/sb-admin-2.min.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/user-management.css}">
+</head>
+<body class="admin-page">
+<header class="topbar">
+    <a class="brand" th:href="@{/admin/users}">SHOPTECH <span>Quản trị</span></a>
+    <nav><a th:href="@{/admin/users}">Người dùng</a><a class="active" th:href="@{/admin/users/trash}">Thùng rác</a><a th:href="@{/account}">Tài khoản</a></nav>
+    <form th:action="@{/logout}" method="post"><button class="button secondary" type="submit">Đăng xuất</button></form>
+</header>
+<main class="page-container">
+    <div class="page-heading">
+        <div><p class="eyebrow">QUẢN TRỊ HỆ THỐNG</p><h1>Thùng rác người dùng</h1><p class="muted">Có thể khôi phục tài khoản hoặc xóa vĩnh viễn.</p></div>
+        <a class="button secondary" th:href="@{/admin/users}">← Danh sách người dùng</a>
+    </div>
+
+    <div class="notice success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="notice error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <section class="panel">
+        <div class="table-scroll">
+            <table>
+                <thead><tr><th>ID</th><th>Người dùng</th><th>Email</th><th>Ngày xóa</th><th class="actions-heading">Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="user : ${trashUsers.content}">
+                    <td th:text="${user.id}"></td>
+                    <td><strong th:text="${user.fullName}"></strong><span class="subtext" th:text="${user.username}"></span></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${user.deletedAt != null ? #temporals.format(user.deletedAt, 'dd/MM/yyyy HH:mm') : '—'}"></td>
+                    <td class="actions">
+                        <form th:action="@{/admin/users/{id}/restore(id=${user.id})}" method="post">
+                            <button class="button small primary" type="submit">Khôi phục</button>
+                        </form>
+                        <form th:action="@{/admin/users/{id}/force-delete(id=${user.id})}" method="post" onsubmit="return confirm('Xóa vĩnh viễn tài khoản này? Thao tác không thể hoàn tác.')">
+                            <button class="button small danger" type="submit">Xóa vĩnh viễn</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${trashUsers.empty}"><td class="empty-cell" colspan="5">Thùng rác đang trống.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-footer">
+            <span th:text="${trashUsers.totalElements} + ' tài khoản'"></span>
+            <div class="pagination" th:if="${trashUsers.totalPages > 1}">
+                <a th:if="${trashUsers.hasPrevious()}" th:href="@{/admin/users/trash(page=${trashUsers.number - 1},size=${trashUsers.size})}">Trước</a>
+                <a th:each="pageNumber : ${#numbers.sequence(0, trashUsers.totalPages - 1)}"
+                   th:href="@{/admin/users/trash(page=${pageNumber},size=${trashUsers.size})}"
+                   th:classappend="${pageNumber == trashUsers.number} ? ' selected'"
+                   th:text="${pageNumber + 1}"></a>
+                <a th:if="${trashUsers.hasNext()}" th:href="@{/admin/users/trash(page=${trashUsers.number + 1},size=${trashUsers.size})}">Sau</a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
