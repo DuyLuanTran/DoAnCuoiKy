@@ -46,4 +46,40 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @EntityGraph(attributePaths = "category")
     Page<Product> findByIsDeletedTrue(Pageable pageable);
+
+    // Danh sách sản phẩm được phép hiển thị cho khách hàng.
+    @EntityGraph(attributePaths = "category")
+    @Query("""
+        SELECT p
+        FROM Product p
+        WHERE p.isDeleted = false
+          AND p.isActive = true
+          AND p.category.isDeleted = false
+          AND p.category.isActive = true
+          AND LOWER(p.name) LIKE LOWER(
+              CONCAT(CONCAT('%', :keyword), '%')
+          )
+          AND (:categoryId IS NULL OR p.category.id = :categoryId)
+        """)
+    Page<Product> searchCatalog(
+            @Param("keyword") String keyword,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    // Chi tiết cũng kiểm tra trạng thái để tránh truy cập
+    // sản phẩm đang ẩn bằng đường dẫn trực tiếp.
+    @EntityGraph(attributePaths = "category")
+    @Query("""
+        SELECT p
+        FROM Product p
+        WHERE p.slug = :slug
+          AND p.isDeleted = false
+          AND p.isActive = true
+          AND p.category.isDeleted = false
+          AND p.category.isActive = true
+        """)
+    Optional<Product> findVisibleBySlug(
+            @Param("slug") String slug
+    );
 }
