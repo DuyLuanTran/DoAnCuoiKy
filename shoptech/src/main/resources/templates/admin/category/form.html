@@ -1,0 +1,161 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/admin-layout :: layout(
+          ${formTitle},
+          'categories',
+          ~{::section}
+      )}"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Danh mục | ShopTech</title>
+  </head>
+
+  <body>
+    <section>
+      <div
+        class="d-flex flex-wrap align-items-center justify-content-between mb-4"
+      >
+        <h1 class="h3 mb-2 text-gray-800" th:text="${formTitle}">Danh mục</h1>
+
+        <a
+          class="btn btn-outline-secondary mb-2"
+          th:href="@{/admin/categories}"
+        >
+          Quay lại danh sách
+        </a>
+      </div>
+
+      <div class="row">
+        <div class="col-xl-8 col-lg-10">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h2 class="h6 m-0 font-weight-bold text-primary">
+                Thông tin danh mục
+              </h2>
+            </div>
+
+            <div class="card-body">
+              <form
+                th:action="@{${formAction}}"
+                th:object="${categoryForm}"
+                method="post"
+              >
+                <!-- Lỗi nghiệp vụ từ service -->
+                <div
+                  class="alert alert-danger"
+                  role="alert"
+                  th:if="${#fields.hasGlobalErrors()}"
+                >
+                  <ul class="mb-0">
+                    <li
+                      th:each="error : ${#fields.globalErrors()}"
+                      th:text="${error}"
+                    ></li>
+                  </ul>
+                </div>
+
+                <div class="form-group">
+                  <label for="name">
+                    Tên danh mục
+                    <span class="text-danger">*</span>
+                  </label>
+
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('name')}
+                                       ? 'is-invalid'"
+                    id="name"
+                    type="text"
+                    th:field="*{name}"
+                    maxlength="100"
+                    placeholder="Ví dụ: Điện thoại"
+                    aria-describedby="nameError"
+                    required
+                  />
+
+                  <div
+                    class="invalid-feedback"
+                    id="nameError"
+                    th:errors="*{name}"
+                  ></div>
+
+                  <small class="form-text text-muted" th:if="${!editing}">
+                    Slug được tạo tự động từ tên danh mục.
+                  </small>
+
+                  <small class="form-text text-muted" th:if="${editing}">
+                    Đổi tên không làm thay đổi slug hiện tại.
+                  </small>
+                </div>
+
+                <div class="form-group">
+                  <label for="description">Mô tả</label>
+
+                  <textarea
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('description')}
+                                          ? 'is-invalid'"
+                    id="description"
+                    th:field="*{description}"
+                    rows="5"
+                    maxlength="5000"
+                    placeholder="Nhập mô tả danh mục..."
+                    aria-describedby="descriptionError"
+                  ></textarea>
+
+                  <div
+                    class="invalid-feedback"
+                    id="descriptionError"
+                    th:errors="*{description}"
+                  ></div>
+                </div>
+                <input type="hidden" th:field="*{iconClass}" />
+                <div class="form-group">
+                  <div class="custom-control custom-checkbox">
+                    <input
+                      class="custom-control-input"
+                      id="active"
+                      type="checkbox"
+                      th:field="*{active}"
+                    />
+
+                    <label class="custom-control-label" for="active">
+                      Bật danh mục
+                    </label>
+                  </div>
+
+                  <small class="form-text text-muted">
+                    Danh mục đang ẩn không xuất hiện trong danh sách danh mục
+                    đang bật dành cho khách hàng.
+                  </small>
+                </div>
+
+                <div class="d-flex justify-content-end flex-wrap mt-4">
+                  <a
+                    class="btn btn-outline-secondary mr-2 mb-2"
+                    th:href="@{/admin/categories}"
+                  >
+                    Hủy
+                  </a>
+
+                  <button
+                    class="btn btn-primary mb-2"
+                    type="submit"
+                    th:text="${editing}
+                                        ? 'Lưu thay đổi'
+                                        : 'Thêm danh mục'"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
