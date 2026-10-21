@@ -1,0 +1,322 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/admin-layout :: layout(
+          'Quản lý sản phẩm',
+          'products',
+          ~{::section}
+      )}"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quản lý sản phẩm | ShopTech</title>
+  </head>
+
+  <body>
+    <section>
+      <div
+        class="d-flex flex-wrap align-items-center justify-content-between mb-4"
+      >
+        <h1 class="h3 mb-2 text-gray-800">Quản lý sản phẩm</h1>
+
+        <a class="btn btn-primary mb-2" th:href="@{/admin/products/new}">
+          <i class="fas fa-plus mr-1" aria-hidden="true"></i>
+          Thêm sản phẩm
+        </a>
+      </div>
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h2 class="h6 m-0 font-weight-bold text-primary">
+            Danh sách sản phẩm
+          </h2>
+        </div>
+
+        <div class="card-body">
+          <!-- Tìm kiếm và lọc -->
+          <form class="mb-4" th:action="@{/admin/products}" method="get">
+            <div class="form-row align-items-end">
+              <div class="col-lg-4 mb-2">
+                <label for="keyword">Tên hoặc mã sản phẩm</label>
+                <input
+                  class="form-control"
+                  id="keyword"
+                  name="keyword"
+                  type="search"
+                  th:value="${keyword}"
+                  placeholder="Nhập tên hoặc mã sản phẩm..."
+                />
+              </div>
+
+              <div class="col-lg-3 mb-2">
+                <label for="categoryId">Danh mục</label>
+                <select class="form-control" id="categoryId" name="categoryId">
+                  <option value="">Tất cả danh mục</option>
+                  <option
+                    th:each="category : ${categories}"
+                    th:value="${category.id}"
+                    th:text="${category.name}"
+                    th:selected="${category.id == categoryId}"
+                  ></option>
+                </select>
+              </div>
+
+              <div class="col-lg-2 mb-2">
+                <label for="size">Sản phẩm mỗi trang</label>
+                <select class="form-control" id="size" name="size">
+                  <option value="10" th:selected="${products.size == 10}">
+                    10
+                  </option>
+                  <option value="20" th:selected="${products.size == 20}">
+                    20
+                  </option>
+                  <option value="50" th:selected="${products.size == 50}">
+                    50
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-lg-3 mb-2">
+                <button class="btn btn-primary" type="submit">Tìm kiếm</button>
+
+                <a
+                  class="btn btn-outline-secondary"
+                  th:href="@{/admin/products}"
+                >
+                  Xóa lọc
+                </a>
+              </div>
+            </div>
+          </form>
+
+          <!-- Bảng sản phẩm -->
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <caption class="sr-only">
+                Danh sách sản phẩm
+              </caption>
+
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Ảnh</th>
+                  <th scope="col">Sản phẩm</th>
+                  <th scope="col">Danh mục</th>
+                  <th scope="col">Giá</th>
+                  <th scope="col">Tồn kho</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Thao tác</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr th:each="product : ${products.content}">
+                  <td th:text="${product.id}"></td>
+
+                  <td>
+                    <img
+                      th:if="${!#strings.isEmpty(product.mainImage)}"
+                      th:src="${product.mainImage}"
+                      th:alt="${product.name}"
+                      width="64"
+                      height="64"
+                      loading="lazy"
+                      class="rounded"
+                      style="object-fit: contain"
+                    />
+
+                    <span
+                      class="text-muted small"
+                      th:if="${#strings.isEmpty(product.mainImage)}"
+                    >
+                      Chưa có ảnh
+                    </span>
+                  </td>
+
+                  <td>
+                    <strong th:text="${product.name}"></strong>
+
+                    <small
+                      class="d-block text-muted"
+                      th:text="'Mã: ' + ${
+                                       #strings.isEmpty(product.sku)
+                                       ? 'Chưa có'
+                                       : product.sku
+                                   }"
+                    >
+                    </small>
+                  </td>
+
+                  <td th:text="${product.category.name}"></td>
+
+                  <td class="text-nowrap">
+                    <th:block th:if="${product.discountPrice != null}">
+                      <strong
+                        class="d-block text-danger"
+                        th:text="${
+                                            #numbers.formatDecimal(
+                                                product.discountPrice,
+                                                1,
+                                                'POINT',
+                                                0,
+                                                'COMMA'
+                                            )
+                                        } + ' ₫'"
+                      >
+                      </strong>
+
+                      <del
+                        class="small text-muted"
+                        th:text="${
+                                         #numbers.formatDecimal(
+                                             product.price,
+                                             1,
+                                             'POINT',
+                                             0,
+                                             'COMMA'
+                                         )
+                                     } + ' ₫'"
+                      >
+                      </del>
+                    </th:block>
+
+                    <strong
+                      th:if="${product.discountPrice == null}"
+                      th:text="${
+                                        #numbers.formatDecimal(
+                                            product.price,
+                                            1,
+                                            'POINT',
+                                            0,
+                                            'COMMA'
+                                        )
+                                    } + ' ₫'"
+                    >
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span
+                      th:text="${product.stockQuantity}"
+                      th:classappend="${product.stockQuantity == 0}
+                                      ? 'text-danger font-weight-bold'"
+                    >
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      th:classappend="${product.isActive}
+                                      ? 'badge-success'
+                                      : 'badge-secondary'"
+                      th:text="${product.isActive}
+                                      ? 'Đang bật'
+                                      : 'Đang ẩn'"
+                    >
+                    </span>
+                  </td>
+
+                  <td>
+                    <div class="d-flex flex-wrap">
+                      <a
+                        class="btn btn-sm btn-outline-primary mr-2 mb-1"
+                        th:href="@{/admin/products/{id}/edit(
+                                       id=${product.id}
+                                   )}"
+                      >
+                        Sửa
+                      </a>
+
+                      <form
+                        class="mb-1"
+                        th:action="@{/admin/products/{id}/delete(
+                                          id=${product.id}
+                                      )}"
+                        method="post"
+                        onsubmit="
+                          return confirm('Chuyển sản phẩm này vào thùng rác?');
+                        "
+                      >
+                        <button
+                          class="btn btn-sm btn-outline-danger"
+                          type="submit"
+                        >
+                          Xóa
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr th:if="${products.empty}">
+                  <td colspan="8" class="text-center text-muted py-4">
+                    Không tìm thấy sản phẩm phù hợp.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Phân trang -->
+          <div
+            class="d-flex flex-wrap align-items-center justify-content-between"
+          >
+            <p
+              class="text-muted mb-2"
+              th:text="'Tổng cộng: ' + ${products.totalElements}
+                       + ' sản phẩm'"
+            ></p>
+
+            <nav
+              th:if="${products.totalPages > 1}"
+              aria-label="Phân trang sản phẩm"
+            >
+              <ul class="pagination mb-2">
+                <li class="page-item" th:if="${products.hasPrevious()}">
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/products(
+                                   page=${products.number - 1},
+                                   size=${products.size},
+                                   keyword=${keyword},
+                                   categoryId=${categoryId}
+                               )}"
+                  >
+                    Trước
+                  </a>
+                </li>
+
+                <li class="page-item disabled">
+                  <span
+                    class="page-link"
+                    th:text="'Trang '
+                                      + ${products.number + 1}
+                                      + ' / '
+                                      + ${products.totalPages}"
+                  >
+                  </span>
+                </li>
+
+                <li class="page-item" th:if="${products.hasNext()}">
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/products(
+                                   page=${products.number + 1},
+                                   size=${products.size},
+                                   keyword=${keyword},
+                                   categoryId=${categoryId}
+                               )}"
+                  >
+                    Sau
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

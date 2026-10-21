@@ -70,7 +70,15 @@
             <span>Quản lý danh mục</span>
           </a>
         </li>
-
+        <li
+          class="nav-item"
+          th:classappend="${activeMenu == 'products'} ? 'active'"
+        >
+          <a class="nav-link" th:href="@{/admin/products}">
+            <i class="fas fa-fw fa-box" aria-hidden="true"></i>
+            <span>Quản lý sản phẩm</span>
+          </a>
+        </li>
         <li
           class="nav-item"
           th:classappend="${activeMenu == 'user-trash'} ? 'active'"

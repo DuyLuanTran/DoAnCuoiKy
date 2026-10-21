@@ -1,0 +1,362 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/admin-layout :: layout(
+          ${formTitle},
+          'products',
+          ~{::section}
+      )}"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sản phẩm | ShopTech</title>
+  </head>
+
+  <body>
+    <section>
+      <div
+        class="d-flex flex-wrap align-items-center justify-content-between mb-4"
+      >
+        <h1 class="h3 mb-2 text-gray-800" th:text="${formTitle}">Sản phẩm</h1>
+
+        <a class="btn btn-outline-secondary mb-2" th:href="@{/admin/products}">
+          Quay lại danh sách
+        </a>
+      </div>
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h2 class="h6 m-0 font-weight-bold text-primary">
+            Thông tin sản phẩm
+          </h2>
+        </div>
+
+        <div class="card-body">
+          <form
+            th:action="@{${formAction}}"
+            th:object="${productForm}"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <div
+              class="alert alert-danger"
+              role="alert"
+              th:if="${#fields.hasGlobalErrors()}"
+            >
+              <ul class="mb-0">
+                <li
+                  th:each="error : ${#fields.globalErrors()}"
+                  th:text="${error}"
+                ></li>
+              </ul>
+            </div>
+
+            <div
+              class="alert alert-warning"
+              th:if="${#lists.isEmpty(categories)}"
+            >
+              Chưa có danh mục khả dụng. Bạn cần tạo hoặc bật danh mục trước khi
+              thêm sản phẩm.
+              <a th:href="@{/admin/categories}"> Quản lý danh mục </a>
+            </div>
+
+            <div class="row">
+              <div class="col-lg-8">
+                <div class="form-group">
+                  <label for="name">
+                    Tên sản phẩm
+                    <span class="text-danger">*</span>
+                  </label>
+
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('name')}
+                                       ? 'is-invalid'"
+                    id="name"
+                    type="text"
+                    th:field="*{name}"
+                    maxlength="255"
+                    placeholder="Ví dụ: Laptop Dell Inspiron 15"
+                    required
+                  />
+
+                  <div class="invalid-feedback" th:errors="*{name}"></div>
+
+                  <small
+                    class="form-text text-muted"
+                    th:text="${editing}
+                                       ? 'Đổi tên không làm thay đổi slug hiện tại.'
+                                       : 'Slug được tạo tự động từ tên sản phẩm.'"
+                  >
+                  </small>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="categoryId">
+                      Danh mục
+                      <span class="text-danger">*</span>
+                    </label>
+
+                    <select
+                      class="form-control"
+                      th:classappend="${#fields.hasErrors('categoryId')}
+                                            ? 'is-invalid'"
+                      id="categoryId"
+                      th:field="*{categoryId}"
+                      required
+                    >
+                      <option value="">-- Chọn danh mục --</option>
+
+                      <option
+                        th:each="category : ${categories}"
+                        th:value="${category.id}"
+                        th:text="${category.name}
+                                                + (${category.isActive}
+                                                    ? ''
+                                                    : ' (đang ẩn)')"
+                      ></option>
+                    </select>
+
+                    <div
+                      class="invalid-feedback"
+                      th:errors="*{categoryId}"
+                    ></div>
+                  </div>
+
+                  <div class="form-group col-md-6">
+                    <label for="sku">Mã sản phẩm (SKU)</label>
+
+                    <input
+                      class="form-control"
+                      th:classappend="${#fields.hasErrors('sku')}
+                                           ? 'is-invalid'"
+                      id="sku"
+                      type="text"
+                      th:field="*{sku}"
+                      maxlength="50"
+                      placeholder="Ví dụ: LAP-DELL-001"
+                    />
+
+                    <div class="invalid-feedback" th:errors="*{sku}"></div>
+
+                    <small class="form-text text-muted">
+                      Không bắt buộc. Chỉ dùng chữ không dấu, số, dấu gạch ngang
+                      hoặc gạch dưới.
+                    </small>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-md-4">
+                    <label for="price">
+                      Giá gốc (VNĐ)
+                      <span class="text-danger">*</span>
+                    </label>
+
+                    <input
+                      class="form-control"
+                      th:classappend="${#fields.hasErrors('price')}
+                                           ? 'is-invalid'"
+                      id="price"
+                      type="number"
+                      th:field="*{price}"
+                      min="0.01"
+                      max="9999999999999.99"
+                      step="0.01"
+                      placeholder="15000000"
+                      required
+                    />
+
+                    <div class="invalid-feedback" th:errors="*{price}"></div>
+                  </div>
+
+                  <div class="form-group col-md-4">
+                    <label for="discountPrice"> Giá khuyến mãi (VNĐ) </label>
+
+                    <input
+                      class="form-control"
+                      th:classappend="${
+                                           #fields.hasErrors('discountPrice')
+                                           or #fields.hasErrors('discountPriceValid')
+                                       } ? 'is-invalid'"
+                      id="discountPrice"
+                      type="number"
+                      th:field="*{discountPrice}"
+                      min="0.01"
+                      max="9999999999999.99"
+                      step="0.01"
+                      placeholder="Để trống nếu không giảm"
+                    />
+
+                    <div
+                      class="invalid-feedback"
+                      th:errors="*{discountPrice}"
+                    ></div>
+
+                    <div
+                      class="invalid-feedback"
+                      th:errors="*{discountPriceValid}"
+                    ></div>
+                  </div>
+
+                  <div class="form-group col-md-4">
+                    <label for="stockQuantity">
+                      Số lượng tồn kho
+                      <span class="text-danger">*</span>
+                    </label>
+
+                    <input
+                      class="form-control"
+                      th:classappend="${#fields.hasErrors('stockQuantity')}
+                                           ? 'is-invalid'"
+                      id="stockQuantity"
+                      type="number"
+                      th:field="*{stockQuantity}"
+                      min="0"
+                      max="2147483647"
+                      step="1"
+                      required
+                    />
+
+                    <div
+                      class="invalid-feedback"
+                      th:errors="*{stockQuantity}"
+                    ></div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="description">Mô tả sản phẩm</label>
+
+                  <textarea
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('description')}
+                                          ? 'is-invalid'"
+                    id="description"
+                    th:field="*{description}"
+                    rows="6"
+                    maxlength="20000"
+                    placeholder="Nhập mô tả sản phẩm..."
+                  ></textarea>
+
+                  <div
+                    class="invalid-feedback"
+                    th:errors="*{description}"
+                  ></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="specifications"> Thông số kỹ thuật </label>
+
+                  <textarea
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('specifications')}
+                                          ? 'is-invalid'"
+                    id="specifications"
+                    th:field="*{specifications}"
+                    rows="5"
+                    maxlength="20000"
+                    placeholder="Ví dụ: CPU, RAM, ổ cứng, màn hình..."
+                  ></textarea>
+
+                  <div
+                    class="invalid-feedback"
+                    th:errors="*{specifications}"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="col-lg-4">
+                <div class="form-group">
+                  <label for="imageFile">
+                    Ảnh chính
+                    <span class="text-danger" th:if="${!editing}">*</span>
+                  </label>
+
+                  <div
+                    class="border rounded p-3 mb-3 text-center"
+                    th:if="${editing
+                                     and !#strings.isEmpty(currentImage)}"
+                  >
+                    <p class="small text-muted">Ảnh hiện tại</p>
+
+                    <img
+                      th:src="${currentImage}"
+                      alt="Ảnh sản phẩm hiện tại"
+                      class="img-fluid"
+                      style="max-height: 220px; object-fit: contain"
+                    />
+                  </div>
+
+                  <input
+                    class="form-control-file"
+                    id="imageFile"
+                    name="imageFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    th:required="${!editing}"
+                  />
+
+                  <small class="form-text text-muted">
+                    Chấp nhận JPG, JPEG, PNG hoặc WEBP. Dung lượng tối đa 5 MB.
+                  </small>
+
+                  <small class="form-text text-muted" th:if="${editing}">
+                    Không chọn ảnh mới để giữ ảnh hiện tại.
+                  </small>
+
+                  <small class="form-text text-muted">
+                    Nếu lưu không thành công, hãy chọn lại file ảnh trước khi
+                    gửi lại.
+                  </small>
+                </div>
+
+                <div class="form-group mt-4">
+                  <div class="custom-control custom-checkbox">
+                    <input
+                      class="custom-control-input"
+                      id="active"
+                      type="checkbox"
+                      th:field="*{active}"
+                    />
+
+                    <label class="custom-control-label" for="active">
+                      Bật kinh doanh sản phẩm
+                    </label>
+                  </div>
+
+                  <small class="form-text text-muted">
+                    Bỏ chọn để ẩn sản phẩm khỏi danh sách đang bán dành cho
+                    khách hàng.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end border-top pt-3">
+              <a
+                class="btn btn-outline-secondary mr-2 mb-2"
+                th:href="@{/admin/products}"
+              >
+                Hủy
+              </a>
+
+              <button
+                class="btn btn-primary mb-2"
+                type="submit"
+                th:disabled="${#lists.isEmpty(categories)}"
+                th:text="${editing}
+                                ? 'Lưu thay đổi'
+                                : 'Thêm sản phẩm'"
+              >
+                Lưu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
