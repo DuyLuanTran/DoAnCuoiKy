@@ -560,7 +560,7 @@
                                            ? 'Còn hàng' : 'Hết hàng'">
                                     </p>
 
-                                    <div class="product-btns"><button class="btn btn-default" type="button" th:attr="data-add-product=${product.id}" th:disabled="${product.stockQuantity <= 0}">Thêm vào giỏ</button>
+                                    <div class="product-btns">
                                         <a th:href="@{/products/{slug}(
                                                slug=${product.slug}
                                            )}">
