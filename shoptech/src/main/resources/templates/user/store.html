@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
@@ -237,7 +237,7 @@
 				line-height: 1.5;
 			}
     </style>
-</head>
+<th:block th:replace="~{fragments/commerce :: head}"/></head>
 
 <body>
 <!-- HEADER -->
@@ -325,7 +325,7 @@
 
                 <!-- Tài khoản -->
                 <div class="col-md-3 clearfix">
-                    <div class="header-ctn">
+                    <div class="header-ctn"><div><a th:href="@{/cart}">Giỏ hàng (<span data-cart-badge th:attr="data-authenticated=${#authorization.expression('isAuthenticated()')}">0</span>)</a></div>
                         <div sec:authorize="isAuthenticated()">
                             <a class="store-account"
                                th:href="@{/account}">
@@ -560,7 +560,7 @@
                                            ? 'Còn hàng' : 'Hết hàng'">
                                     </p>
 
-                                    <div class="product-btns">
+                                    <div class="product-btns"><button class="btn btn-default" type="button" th:attr="data-add-product=${product.id}" th:disabled="${product.stockQuantity <= 0}">Thêm vào giỏ</button>
                                         <a th:href="@{/products/{slug}(
                                                slug=${product.slug}
                                            )}">
@@ -725,5 +725,5 @@
 <script th:src="@{/user/js/nouislider.min.js}"></script>
 <script th:src="@{/user/js/jquery.zoom.min.js}"></script>
 <script th:src="@{/user/js/main.js}"></script>
-</body>
+<th:block th:replace="~{fragments/commerce :: scripts}"/></body>
 </html>

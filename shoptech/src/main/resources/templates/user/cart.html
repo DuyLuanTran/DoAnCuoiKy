@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Giỏ hàng | ShopTech</title>
+<th:block th:replace="~{fragments/commerce :: head}"/>
+<link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"></head>
+<body><header id="header"><div class="container"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div></header>
+<main class="section container"><nav th:replace="~{fragments/commerce :: links}"></nav><h1>Giỏ hàng</h1>
+<div id="cart-content" aria-live="polite">Đang tải giỏ hàng…</div>
+<a id="checkout-link" class="primary-btn" th:href="@{/checkout}" hidden>Thanh toán</a></main>
+<th:block th:replace="~{fragments/commerce :: scripts}"/></body></html>

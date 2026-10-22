@@ -47,7 +47,7 @@ public class Product {
     private String mainImage;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "image_gallery", columnDefinition = "text[]")
+    @Column(name = "image_gallery", columnDefinition = "text array")
     private String[] imageGallery;
 
     @Column(name = "is_active", nullable = false)

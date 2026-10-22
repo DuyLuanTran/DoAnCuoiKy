@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Chi tiết đơn hàng','orders',~{::main})}"><body><main>
+<th:block th:replace="~{fragments/commerce :: head}"/><a th:href="@{/admin/orders}">Danh sách đơn hàng</a>
+<section th:replace="~{user/order-detail :: detail}"></section>
+<form id="order-status-form" th:unless="${#sets.isEmpty(nextStatuses)}" th:attr="data-order-id=${order.id},data-expected=${order.status}">
+<label for="status">Chuyển trạng thái</label><select id="status" name="status" class="form-control"><option th:each="s : ${nextStatuses}" th:value="${s}" th:text="${s}"></option></select><button type="submit" class="btn btn-primary mt-2">Cập nhật trạng thái</button>
+</form><p th:if="${#sets.isEmpty(nextStatuses)}">Đơn hàng đã kết thúc, không thể chỉnh sửa.</p>
+<th:block th:replace="~{fragments/commerce :: scripts}"/><script th:src="@{/admin/js/orders.js}" defer></script>
+</main></body></html>
