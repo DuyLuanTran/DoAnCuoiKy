@@ -12,8 +12,14 @@ import com.example.shoptech.entity.User;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u WHERE u.username = :username AND u.isDeleted = false AND u.isActive = true")
+    Optional<User> lockActiveByUsername(@Param("username") String username);
     Optional<User> findByUsernameAndIsDeletedFalse(String username);
     Optional<User> findByEmailAndIsDeletedFalse(String email);
+    @org.springframework.transaction.annotation.Transactional(
+            readOnly = true, propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    boolean existsByUsernameAndIsActiveTrueAndIsDeletedFalse(String username);
 
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);

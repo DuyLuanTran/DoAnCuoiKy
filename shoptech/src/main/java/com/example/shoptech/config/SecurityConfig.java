@@ -88,6 +88,7 @@ public class SecurityConfig {
                                 "/forgot-password",
                                 "/reset-password"
                         ).permitAll()
+                        .requestMatchers("/api/cart/**", "/api/cart", "/cart", "/checkout", "/orders/**", "/api/orders/**", "/ws/**").authenticated()
                         .requestMatchers("/account").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").authenticated()
@@ -99,7 +100,15 @@ public class SecurityConfig {
                 .requestCache(requestCache -> requestCache.disable())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(
-                                new LoginUrlAuthenticationEntryPoint("/login")
+                                (request, response, failure) -> {
+                                    if (request.getRequestURI().startsWith(request.getContextPath() + "/api/")) {
+                                        response.setStatus(401);
+                                        response.setContentType("application/problem+json;charset=UTF-8");
+                                        response.getWriter().write("{\"status\":401,\"detail\":\"Vui lòng đăng nhập.\"}");
+                                    } else {
+                                        new LoginUrlAuthenticationEntryPoint("/login").commence(request,response,failure);
+                                    }
+                                }
                         )
                 )
                 .logout(logout -> logout

@@ -100,7 +100,7 @@
         }
       }
     </style>
-  </head>
+  <th:block th:replace="~{fragments/commerce :: head}"/></head>
 
   <body>
     <!-- Dùng nguyên header và menu của trang danh sách -->
@@ -237,7 +237,7 @@
                 th:text="${product.description}"
               ></p>
 
-              <!-- Chờ nối endpoint giỏ hàng của người 3 -->
+              <!-- Thêm sản phẩm qua API giỏ hàng -->
               <div class="add-to-cart">
                 <div class="qty-label">
                   <label for="quantity">Số lượng</label>
@@ -259,8 +259,7 @@
                 <button
                   class="add-to-cart-btn"
                   type="button"
-                  disabled
-                  title="Chức năng giỏ hàng chưa khả dụng"
+                  th:disabled="${product.stockQuantity <= 0}" th:attr="data-add-product=${product.id}"
                 >
                   <i class="fa fa-shopping-cart" aria-hidden="true"></i>
                   Thêm vào giỏ
@@ -367,5 +366,5 @@
     <script th:src="@{/user/js/nouislider.min.js}"></script>
     <script th:src="@{/user/js/jquery.zoom.min.js}"></script>
     <script th:src="@{/user/js/main.js}"></script>
-  </body>
+  <th:block th:replace="~{fragments/commerce :: scripts}"/></body>
 </html>

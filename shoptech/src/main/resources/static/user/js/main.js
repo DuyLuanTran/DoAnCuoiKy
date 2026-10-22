@@ -128,15 +128,16 @@
 	var priceInputMax = document.getElementById('price-max'),
 			priceInputMin = document.getElementById('price-min');
 
-	priceInputMax.addEventListener('change', function(){
+	if (priceInputMax) priceInputMax.addEventListener('change', function(){
 		updatePriceSlider($(this).parent() , this.value)
 	});
 
-	priceInputMin.addEventListener('change', function(){
+	if (priceInputMin) priceInputMin.addEventListener('change', function(){
 		updatePriceSlider($(this).parent() , this.value)
 	});
 
 	function updatePriceSlider(elem , value) {
+		if (!priceSlider || !priceSlider.noUiSlider) return;
 		if ( elem.hasClass('price-min') ) {
 			console.log('min')
 			priceSlider.noUiSlider.set([value, null]);
@@ -148,7 +149,7 @@
 
 	// Price Slider
 	var priceSlider = document.getElementById('price-slider');
-	if (priceSlider) {
+	if (priceSlider && priceInputMin && priceInputMax) {
 		noUiSlider.create(priceSlider, {
 			start: [1, 999],
 			connect: true,
