@@ -7,6 +7,7 @@ import com.example.shoptech.security.JwtCookieAuthenticationFilter;
 import com.example.shoptech.service.JwtService;
 import com.example.shoptech.service.PasswordResetService;
 import com.example.shoptech.service.UserService;
+import com.example.shoptech.service.CategoryService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final UserService userService;
+    private final CategoryService categoryService;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordResetService passwordResetService;
@@ -41,11 +43,13 @@ public class AuthController {
 
     public AuthController(
             UserService userService,
+            CategoryService categoryService,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             PasswordResetService passwordResetService,
             @Value("${shoptech.security.cookie-secure:false}") boolean secureCookie) {
         this.userService = userService;
+        this.categoryService = categoryService;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordResetService = passwordResetService;
@@ -111,6 +115,7 @@ public class AuthController {
         return userService.findByUsername(authentication.getName())
                 .map(user -> {
                     model.addAttribute("account", user);
+                    model.addAttribute("categories", categoryService.getAvailableCategories());
                     return "user/account";
                 })
                 .orElse("redirect:/login?error");

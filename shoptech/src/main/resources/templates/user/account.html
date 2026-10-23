@@ -4,37 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tài khoản | ShopTech</title>
+    <th:block th:replace="~{fragments/commerce :: head}"></th:block>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
     <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/user/css/style.css}">
+    <style th:replace="~{user/store :: style}"></style>
+    <style>.account-page #header .menu-toggle { display: none; }</style>
 </head>
-<body>
-<header>
-    <div id="top-header">
-        <div class="container">
-            <ul class="header-links pull-left">
-                <li><a th:href="@{/}"><i class="fa fa-home"></i> ShopTech</a></li>
-            </ul>
-            <ul class="header-links pull-right">
-                <li><a th:href="@{/account}"><i class="fa fa-user"></i> <span th:text="${account.fullName}"></span></a></li>
-                <li>
-                    <form th:action="@{/logout}" method="post" class="store-logout-form">
-                        <button type="submit"><i class="fa fa-sign-out"></i> Đăng xuất</button>
-                    </form>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <div id="header">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="header-logo"><a th:href="@{/}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
+<body class="account-page">
+<th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
 <main class="container" style="padding-top: 40px; padding-bottom: 60px;">
     <div class="section-title"><h3 class="title">Thông tin tài khoản</h3></div>
     <div class="row">
@@ -55,5 +34,6 @@
         </div>
     </div>
 </main>
+<th:block th:replace="~{fragments/commerce :: scripts}"></th:block>
 </body>
 </html>

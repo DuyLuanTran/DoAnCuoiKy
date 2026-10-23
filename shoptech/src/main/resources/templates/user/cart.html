@@ -1,10 +1,78 @@
-<!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Giỏ hàng | ShopTech</title>
-<th:block th:replace="~{fragments/commerce :: head}"/>
-<link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"></head>
-<body><header id="header"><div class="container"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div></header>
-<main class="section container"><nav th:replace="~{fragments/commerce :: links}"></nav><h1>Giỏ hàng</h1>
-<div id="cart-content" aria-live="polite">Đang tải giỏ hàng…</div>
-<a id="checkout-link" class="primary-btn" th:href="@{/checkout}" hidden>Thanh toán</a></main>
-<th:block th:replace="~{fragments/commerce :: scripts}"/></body></html>
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Giỏ hàng | ShopTech</title>
+    <th:block th:replace="~{fragments/commerce :: head}"></th:block>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/style.css}">
+    <style th:replace="~{user/store :: style}"></style>
+    <link rel="stylesheet" th:href="@{/user/css/cart.css}">
+</head>
+<body class="cart-page">
+<th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
+<nav id="navigation" aria-label="Mua hàng">
+    <div class="container">
+        <ul class="main-nav nav navbar-nav cart-navigation">
+            <li><a th:href="@{/products}">Sản phẩm</a></li>
+            <li class="active"><a th:href="@{/cart}" aria-current="page">Giỏ hàng</a></li>
+            <li><a th:href="@{/orders}">Lịch sử đơn hàng</a></li>
+        </ul>
+    </div>
+</nav>
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <ul class="breadcrumb-tree">
+            <li><a th:href="@{/products}">Sản phẩm</a></li>
+            <li class="active">Giỏ hàng</li>
+        </ul>
+    </div>
+</div>
+<main class="section cart-main">
+    <div class="container">
+        <div class="cart-heading">
+            <div>
+                <h1>Giỏ hàng của bạn</h1>
+                <p id="cart-description" aria-live="polite">Đang tải giỏ hàng…</p>
+            </div>
+        </div>
+        <div id="cart-layout" class="cart-layout" aria-busy="true">
+            <section class="cart-products" aria-label="Sản phẩm trong giỏ hàng">
+                <div id="cart-column-headings" class="cart-column-headings" aria-hidden="true" hidden>
+                    <span>Sản phẩm</span><span>Số lượng</span><span>Thành tiền</span><span></span>
+                </div>
+                <div id="cart-content" aria-live="polite">
+                    <p class="cart-loading" role="status">Đang tải giỏ hàng…</p>
+                </div>
+                <a class="cart-continue" th:href="@{/products}">
+                    <i class="fa fa-arrow-left" aria-hidden="true"></i> Tiếp tục mua sắm
+                </a>
+            </section>
+            <aside class="cart-summary" aria-labelledby="cart-summary-title">
+                <h2 id="cart-summary-title">Tóm tắt đơn hàng</h2>
+                <div class="cart-summary-line"><span>Tạm tính</span><strong id="cart-subtotal">—</strong></div>
+                <div class="cart-summary-line"><span>Phí vận chuyển</span><strong>0 ₫</strong></div>
+                <div class="cart-grand-total">
+                    <span>Tổng cộng</span><strong id="cart-total" aria-live="polite">—</strong>
+                </div>
+                <a id="checkout-link" class="primary-btn cart-checkout" th:href="@{/checkout}" hidden>
+                    Tiến hành thanh toán <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                </a>
+                <p id="cart-checkout-status" class="cart-checkout-status">Đang tải giỏ hàng…</p>
+                <p class="cart-payment-note">Thanh toán khi nhận hàng (COD)</p>
+            </aside>
+        </div>
+    </div>
+</main>
+<footer id="footer" class="cart-footer">
+    <div id="bottom-footer" class="section">
+        <div class="container text-center"><span class="copyright">ShopTech | By Group 20</span></div>
+    </div>
+</footer>
+<th:block th:replace="~{fragments/commerce :: scripts}"></th:block>
+</body>
+</html>
