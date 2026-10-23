@@ -5,6 +5,8 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
+    boolean existsByUser_Id(Long userId);
+
     interface RevenueDay {
         java.time.LocalDate getBucket();
         java.math.BigDecimal getRevenue();

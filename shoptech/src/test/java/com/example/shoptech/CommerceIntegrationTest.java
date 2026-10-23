@@ -33,6 +33,7 @@ class CommerceIntegrationTest {
     @Autowired OrderService orderService;
     @Autowired OrderRepository orders;
     @Autowired com.example.shoptech.service.AdminOrderService adminOrders;
+    @Autowired com.example.shoptech.service.UserService userService;
     @Autowired com.example.shoptech.service.RevenueService revenue;
     @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @Autowired jakarta.persistence.EntityManager entityManager;
@@ -50,6 +51,14 @@ class CommerceIntegrationTest {
         });
     }
     @Test void cartRequiresLogin() throws Exception { mvc.perform(get("/api/cart")).andExpect(status().isUnauthorized()); }
+    @Test void resetPasswordFormRendersWithAndWithoutToken() throws Exception {
+        mvc.perform(get("/reset-password"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Tạo mật khẩu mới")));
+        mvc.perform(get("/reset-password").param("token","test-token"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"token\"")));
+    }
     @Test @WithMockUser(username="alice") void csrfRequired() throws Exception { mvc.perform(post("/api/cart/items").contentType("application/json").content("{\"productId\":"+productId+",\"quantity\":1}")).andExpect(status().isForbidden()); }
     @Test @WithMockUser(username="alice") void cartApiAndPage() throws Exception {
         mvc.perform(post("/api/cart/items").with(csrf()).contentType("application/json").content("{\"productId\":"+productId+",\"quantity\":2}"))
@@ -216,8 +225,86 @@ class CommerceIntegrationTest {
         mvc.perform(get("/")).andExpect(status().isOk());mvc.perform(get("/login")).andExpect(status().isOk());
     }
     @Test @WithMockUser(roles="ADMIN") void existingAdminPagesRegression() throws Exception {
-        for(String url:java.util.List.of("/admin","/admin/users","/admin/categories","/admin/products"))mvc.perform(get(url)).andExpect(status().isOk());
+        User bob=users.findByUsernameAndIsDeletedFalse("bob").orElseThrow();
+        for(String url:java.util.List.of("/admin","/admin/users","/admin/users/new",
+                "/admin/users/"+bob.getId()+"/edit","/admin/users/trash",
+                "/admin/categories","/admin/products"))mvc.perform(get(url)).andExpect(status().isOk());
+        mvc.perform(get("/admin"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/admin/users\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/admin/users/trash\"")));
+        mvc.perform(get("/admin/users"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/admin/users/trash\"")));
+        mvc.perform(get("/admin/users/trash"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/admin/users\"")));
         mvc.perform(get("/products").param("keyword","Test").param("categoryId",categories.findAll().get(0).getId().toString()).param("page","0")).andExpect(status().isOk());
+    }
+    @Test @WithMockUser(roles="ADMIN") void adminCanCreateAndUpdateUsersThroughForms() throws Exception {
+        mvc.perform(post("/admin/users/new").with(csrf())
+                        .param("fullName","Created User")
+                        .param("username","created-user")
+                        .param("email","created@example.invalid")
+                        .param("password","secret123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users"));
+        User created=users.findByUsernameAndIsDeletedFalse("created-user").orElseThrow();
+
+        mvc.perform(get("/admin/users/"+created.getId()+"/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Cập nhật tài khoản")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("action=\"/admin/users/"+created.getId()+"/edit\"")));
+        mvc.perform(post("/admin/users/"+created.getId()+"/edit").with(csrf())
+                        .param("fullName","Updated User")
+                        .param("username","created-user")
+                        .param("email","created@example.invalid")
+                        .param("phoneNumber","0901234567")
+                        .param("address","Test address"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users"));
+        assertEquals("Updated User",users.findById(created.getId()).orElseThrow().getFullName());
+    }
+    @Test @WithMockUser(roles="ADMIN") void adminCanSearchTrashAndRestoreUser() throws Exception {
+        User bob=users.findByUsernameAndIsDeletedFalse("bob").orElseThrow();
+        mvc.perform(post("/admin/users/"+bob.getId()+"/delete").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users"));
+
+        mvc.perform(get("/admin/users/trash").param("keyword","bob"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Bob Test")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Alice Test"))));
+        mvc.perform(get("/admin/users/"+bob.getId()+"/restore"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Xác nhận khôi phục tài khoản")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("action=\"/admin/users/"+bob.getId()+"/restore\"")));
+        mvc.perform(post("/admin/users/"+bob.getId()+"/restore").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users/trash"));
+        assertFalse(users.findById(bob.getId()).orElseThrow().getIsDeleted());
+    }
+    @Test @WithMockUser(roles="ADMIN") void restoreConfirmationOnlyShowsForUsersInTrash() throws Exception {
+        User bob=users.findByUsernameAndIsDeletedFalse("bob").orElseThrow();
+        mvc.perform(get("/admin/users/"+bob.getId()+"/restore"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users/trash"));
+    }
+    @Test @WithMockUser(roles="ADMIN") void permanentDeleteRemovesUserWithoutOrderHistory() throws Exception {
+        User bob=users.findByUsernameAndIsDeletedFalse("bob").orElseThrow();
+        userService.moveToTrash(bob.getId());
+
+        mvc.perform(post("/admin/users/"+bob.getId()+"/force-delete").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/users/trash"));
+        assertFalse(users.existsById(bob.getId()));
+    }
+    @Test @WithMockUser(roles="ADMIN") void permanentDeletePreservesUsersWithOrderHistory() throws Exception {
+        placeOrder();
+        User alice=users.findByUsernameAndIsDeletedFalse("alice").orElseThrow();
+        userService.moveToTrash(alice.getId());
+
+        mvc.perform(post("/admin/users/"+alice.getId()+"/force-delete").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("errorMessage", org.hamcrest.Matchers.containsString("đơn hàng")));
+        assertTrue(users.existsById(alice.getId()));
     }
     @Test @WithMockUser(username="alice") void cartApiRejectsFractionalAndNegativeQuantity() throws Exception {
         for(String quantity:java.util.List.of("0","-1","1.5"))mvc.perform(post("/api/cart/items").with(csrf()).contentType("application/json").content("{\"productId\":"+productId+",\"quantity\":"+quantity+"}")).andExpect(status().isBadRequest());

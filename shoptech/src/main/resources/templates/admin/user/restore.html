@@ -1,0 +1,66 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/admin-layout :: layout(
+      'Khôi phục người dùng',
+      'user-trash',
+      ~{::main}
+  )}"
+>
+  <body>
+    <main>
+      <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+          <h1 class="h3 mb-1 text-gray-800">Khôi phục người dùng</h1>
+          <p class="text-muted mb-2">Xác nhận đưa tài khoản trở lại danh sách người dùng.</p>
+        </div>
+        <a class="btn btn-outline-secondary mb-2" th:href="@{/admin/users/trash}">
+          Quay lại thùng rác
+        </a>
+      </div>
+
+      <div class="row">
+        <div class="col-xl-8 col-lg-10">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h2 class="h6 m-0 font-weight-bold text-primary">Xác nhận khôi phục tài khoản</h2>
+            </div>
+            <div class="card-body">
+              <p>Bạn có chắc chắn muốn khôi phục tài khoản này không?</p>
+              <dl class="row mb-4">
+                <dt class="col-sm-3">Họ và tên</dt>
+                <dd class="col-sm-9" th:text="${user.fullName}"></dd>
+
+                <dt class="col-sm-3">Tên đăng nhập</dt>
+                <dd class="col-sm-9" th:text="${user.username}"></dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9" th:text="${user.email}"></dd>
+
+                <dt class="col-sm-3">Ngày chuyển vào thùng rác</dt>
+                <dd
+                  class="col-sm-9"
+                  th:text="${user.deletedAt != null ? #temporals.format(user.deletedAt, 'dd/MM/yyyy HH:mm') : '—'}"
+                ></dd>
+              </dl>
+
+              <div class="d-flex justify-content-end flex-wrap">
+                <a
+                  class="btn btn-outline-secondary mr-2 mb-2"
+                  th:href="@{/admin/users/trash}"
+                >Hủy</a>
+                <form th:action="@{/admin/users/{id}/restore(id=${user.id})}" method="post">
+                  <button class="btn btn-primary mb-2" type="submit">
+                    <i class="fas fa-undo mr-1" aria-hidden="true"></i>
+                    Xác nhận khôi phục
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
