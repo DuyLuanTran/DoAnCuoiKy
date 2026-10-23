@@ -13,4 +13,8 @@
     <script th:src="@{/user/js/order-notifications.js}" defer></script>
 </th:block>
 <nav th:fragment="links" aria-label="Mua hàng"><a th:href="@{/products}">Sản phẩm</a> · <a th:href="@{/cart}">Giỏ hàng (<span data-cart-badge data-authenticated="true">0</span>)</a> · <a th:href="@{/orders}">Lịch sử đơn hàng</a></nav>
+<th:block th:fragment="storeHeader"
+          th:with="keyword='',categoryId=${null},minPrice=${null},maxPrice=${null},inStock=false,onSale=false,sort='newest',pageSize=12">
+    <header th:replace="~{user/store :: header}"></header>
+</th:block>
 </body></html>
