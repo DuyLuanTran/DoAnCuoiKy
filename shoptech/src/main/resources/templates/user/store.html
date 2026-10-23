@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sản phẩm | ShopTech</title>
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
+
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/slick.css}">
+    <link rel="stylesheet" th:href="@{/user/css/slick-theme.css}">
+    <link rel="stylesheet" th:href="@{/user/css/nouislider.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/style.css}">
+
+    <!-- Chỉ xử lý chữ dài, form tìm kiếm và kích thước ảnh -->
+    <style>
+        .header-search form {
+            display: flex;
+            align-items: stretch;
+        }
+
+        #header .header-search form .input-select {
+            flex: 0 1 220px;
+            width: 220px;
+            min-width: 0;
+            margin: 0;
+        }
+
+        #header .header-search form .input {
+            flex: 1 1 0;
+            width: 0;
+            min-width: 0;
+            margin: 0;
+        }
+
+        #header .header-search form .search-btn {
+            flex: 0 0 100px;
+            width: 100px;
+            white-space: nowrap;
+        }
+
+        .store-logout-form {
+            display: inline;
+        }
+
+        .store-logout-form button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .store-logout-form button:hover {
+            color: #d10024;
+        }
+
+        #navigation .main-nav {
+            display: flex;
+            flex-wrap: wrap;
+            float: none;
+        }
+
+        #navigation .main-nav > li {
+            float: none;
+            margin-left: 0;
+            margin-right: 24px;
+        }
+
+        #aside .category-link {
+            display: block;
+            padding: 8px 0;
+            overflow-wrap: anywhere;
+        }
+
+        #aside .category-link.selected {
+            color: #d10024;
+            font-weight: 700;
+        }
+
+        .product .product-img > a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 240px;
+            padding: 15px;
+        }
+
+        .product .product-img > a > img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .product .product-category {
+            min-height: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .product .product-body .product-name {
+            display: -webkit-box;
+            height: 44px;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-height: 22px;
+        }
+
+        .product .product-body .product-price {
+            min-height: 48px;
+        }
+
+        .product .product-old-price {
+            display: block;
+            margin-top: 4px;
+        }
+
+        .product-stock {
+            margin: 12px 0;
+            font-size: 12px;
+        }
+
+        .store-size-form {
+            display: inline-block;
+        }
+
+        .store-size-form label {
+            margin-right: 8px;
+        }
+
+        .store-size-form button {
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid #e4e7ed;
+            background: #fff;
+        }
+
+        .store-clear {
+            display: inline-block;
+            margin-left: 12px;
+            color: #d10024;
+        }
+
+        .store-search-summary {
+            margin-bottom: 20px;
+            overflow-wrap: anywhere;
+        }
+
+        .footer-links a {
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 991px) {
+            #aside {
+                margin-bottom: 25px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .header-search form {
+                flex-wrap: wrap;
+                gap: 8px 0;
+            }
+
+            #header .header-search form .input-select {
+                flex: 0 0 100%;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px;
+            }
+
+            #header .header-search form .input {
+                border-radius: 20px 0 0 20px;
+            }
+
+            #navigation .main-nav {
+                display: block;
+            }
+
+            .product .product-img > a {
+                height: 180px;
+                padding: 10px;
+            }
+
+            .product .product-body {
+                padding: 12px 8px;
+            }
+
+            .product .product-body .product-price {
+                font-size: 16px;
+            }
+
+            .store-size-form label {
+                display: block;
+            }
+
+            .store-clear {
+                margin-top: 12px;
+                margin-left: 0;
+            }
+        }
+			.header-logo .store-brand {
+				display: inline-block;
+				padding: 4px 0;
+				color: #fff;
+				font-size: 42px;
+				font-weight: 700;
+				line-height: 1.2;
+				letter-spacing: -1.5px;
+				white-space: nowrap;
+			}
+
+			.header-logo .store-brand span {
+				color: #d10024;
+			}
+
+			.header-logo .store-brand:hover,
+			.header-logo .store-brand:focus {
+				color: #fff;
+			}
+
+			.header-ctn > div > a.store-account {
+				width: auto;
+				min-width: 90px;
+				max-width: 160px;
+			}
+
+			.store-account > span {
+				display: block;
+				overflow-wrap: anywhere;
+				line-height: 1.5;
+			}
+    </style>
+<th:block th:replace="~{fragments/commerce :: head}"/></head>
+
+<body>
+<!-- HEADER -->
+<header>
+    <div id="top-header">
+        <div class="container">
+            <ul class="header-links pull-right">
+                <li sec:authorize="isAnonymous()">
+                    <a th:href="@{/login}">
+                        <i class="fa fa-sign-in" aria-hidden="true"></i>
+                        Đăng nhập
+                    </a>
+                </li>
+
+                <li sec:authorize="isAnonymous()">
+                    <a th:href="@{/register}">
+                        <i class="fa fa-user-plus" aria-hidden="true"></i>
+                        Đăng ký
+                    </a>
+                </li>
+
+                <li sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{/admin}">
+                        <i class="fa fa-cog" aria-hidden="true"></i>
+                        Quản trị
+                    </a>
+                </li>
+
+                <li sec:authorize="isAuthenticated()">
+                    <form class="store-logout-form"
+                          th:action="@{/logout}"
+                          method="post">
+                        <button type="submit">
+                            <i class="fa fa-sign-out" aria-hidden="true"></i>
+                            Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="header">
+        <div class="container">
+            <div class="row">
+                <!-- Thương hiệu -->
+                <div class="col-md-3">
+                    <div class="header-logo">
+                        <a class="logo store-brand"
+                           th:href="@{/products}">
+                            ShopTech<span>.</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tìm kiếm -->
+                <div class="col-md-6">
+                    <div class="header-search">
+                        <form th:action="@{/products}" method="get">
+                            <select class="input-select"
+                                    name="categoryId"
+                                    aria-label="Danh mục sản phẩm">
+                                <option value="">Tất cả danh mục</option>
+
+                                <option th:each="category : ${categories}"
+                                        th:value="${category.id}"
+                                        th:text="${category.name}"
+                                        th:selected="${category.id == categoryId}">
+                                </option>
+                            </select>
+
+                            <input class="input"
+                                   name="keyword"
+                                   type="search"
+                                   th:value="${keyword}"
+                                   placeholder="Tìm sản phẩm..."
+                                   aria-label="Tên sản phẩm">
+
+                            <button class="search-btn" type="submit">
+                                Tìm kiếm
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tài khoản -->
+                <div class="col-md-3 clearfix">
+                    <div class="header-ctn"><div><a th:href="@{/cart}">Giỏ hàng (<span data-cart-badge th:attr="data-authenticated=${#authorization.expression('isAuthenticated()')}">0</span>)</a></div>
+                        <div sec:authorize="isAuthenticated()">
+                            <a class="store-account"
+                               th:href="@{/account}">
+                                <i class="fa fa-user-o" aria-hidden="true"></i>
+                                <span sec:authentication="name"></span>
+                            </a>
+                        </div>
+
+                        <div sec:authorize="isAnonymous()">
+                            <a th:href="@{/login}">
+                                <i class="fa fa-user-o" aria-hidden="true"></i>
+                                <span>Đăng nhập</span>
+                            </a>
+                        </div>
+
+                        <div class="menu-toggle">
+                            <a href="#responsive-nav">
+                                <i class="fa fa-bars" aria-hidden="true"></i>
+                                <span>Danh mục</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- NAVIGATION -->
+<nav id="navigation" aria-label="Điều hướng cửa hàng">
+    <div class="container">
+        <div id="responsive-nav">
+            <ul class="main-nav nav navbar-nav">
+                <li th:classappend="${categoryId == null} ? 'active'">
+                    <a th:href="@{/products}">Tất cả sản phẩm</a>
+                </li>
+
+                <li th:each="category : ${categories}"
+                    th:classappend="${category.id == categoryId} ? 'active'">
+                    <a th:href="@{/products(categoryId=${category.id})}"
+                       th:text="${category.name}">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- BREADCRUMB -->
+<div id="breadcrumb" class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="breadcrumb-tree">
+                    <li><a th:href="@{/}">Trang chủ</a></li>
+                    <li><a th:href="@{/products}">Sản phẩm</a></li>
+                    <li class="active"
+                        th:text="${products.totalElements} + ' kết quả'">
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION -->
+<div class="section">
+    <div class="container">
+        <div class="row">
+
+            <!-- ASIDE -->
+            <aside id="aside" class="col-md-3">
+                <div class="aside">
+                    <h2 class="aside-title">Danh mục</h2>
+
+                    <div class="checkbox-filter">
+                        <a class="category-link"
+                           th:classappend="${categoryId == null} ? 'selected'"
+                           th:href="@{/products(
+                               keyword=${keyword},
+                               size=${products.size}
+                           )}">
+                            Tất cả danh mục
+                        </a>
+
+                        <a class="category-link"
+                           th:each="category : ${categories}"
+                           th:classappend="${category.id == categoryId}
+                               ? 'selected'"
+                           th:href="@{/products(
+                               categoryId=${category.id},
+                               keyword=${keyword},
+                               size=${products.size}
+                           )}"
+                           th:text="${category.name}">
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- STORE -->
+            <div id="store" class="col-md-9">
+
+                <!-- Bộ điều khiển danh sách -->
+                <div class="store-filter clearfix">
+                    <div class="store-sort">
+                        <form class="store-size-form"
+                              th:action="@{/products}"
+                              method="get">
+                            <input type="hidden"
+                                   name="keyword"
+                                   th:value="${keyword}">
+
+                            <input th:if="${categoryId != null}"
+                                   type="hidden"
+                                   name="categoryId"
+                                   th:value="${categoryId}">
+
+                            <label for="pageSize">
+                                Sản phẩm mỗi trang:
+                                <select class="input-select"
+                                        id="pageSize"
+                                        name="size">
+                                    <option value="12"
+                                            th:selected="${products.size == 12}">
+                                        12
+                                    </option>
+                                    <option value="24"
+                                            th:selected="${products.size == 24}">
+                                        24
+                                    </option>
+                                    <option value="48"
+                                            th:selected="${products.size == 48}">
+                                        48
+                                    </option>
+                                </select>
+                            </label>
+
+                            <button type="submit">Áp dụng</button>
+                        </form>
+
+                        <a class="store-clear"
+                           th:href="@{/products}">
+                            Xóa bộ lọc
+                        </a>
+                    </div>
+                </div>
+
+                <p class="store-search-summary">
+                    Tìm thấy
+                    <strong th:text="${products.totalElements}">0</strong>
+                    sản phẩm.
+                    <th:block th:if="${!#strings.isEmpty(keyword)}">
+                        Từ khóa:
+                        <strong th:text="${keyword}"></strong>
+                    </th:block>
+                </p>
+
+                <div class="alert alert-info"
+                     role="status"
+                     th:if="${products.empty}">
+                    Không tìm thấy sản phẩm phù hợp.
+                    Vui lòng thử từ khóa hoặc danh mục khác.
+                </div>
+
+                <!-- Lưới sản phẩm: giữ cấu trúc Electro -->
+                <div class="row">
+                    <th:block th:each="product, item : ${products.content}">
+                        <div class="col-md-4 col-xs-6">
+                            <div class="product">
+                                <div class="product-img">
+                                    <a th:href="@{/products/{slug}(
+                                           slug=${product.slug}
+                                       )}">
+                                        <img th:if="${!#strings.isEmpty(product.mainImage)}"
+                                             th:src="${product.mainImage}"
+                                             th:alt="${product.name}"
+                                             loading="lazy">
+
+                                        <span class="text-muted"
+                                              th:if="${#strings.isEmpty(product.mainImage)}">
+                                            Chưa có ảnh
+                                        </span>
+                                    </a>
+
+                                    <div class="product-label"
+                                         th:if="${product.discountPrice != null}">
+                                        <span class="sale">Giảm giá</span>
+                                    </div>
+                                </div>
+
+                                <div class="product-body">
+                                    <p class="product-category"
+                                       th:text="${product.category.name}">
+                                    </p>
+
+                                    <h3 class="product-name">
+                                        <a th:href="@{/products/{slug}(
+                                               slug=${product.slug}
+                                           )}"
+                                           th:text="${product.name}"
+                                           th:title="${product.name}">
+                                        </a>
+                                    </h3>
+
+                                    <h4 class="product-price">
+                                        <span th:text="${
+                                            #numbers.formatDecimal(
+                                                product.discountPrice != null
+                                                    ? product.discountPrice
+                                                    : product.price,
+                                                1, 'POINT', 0, 'COMMA'
+                                            )
+                                        } + ' ₫'">
+                                        </span>
+
+                                        <del class="product-old-price"
+                                             th:if="${product.discountPrice != null}"
+                                             th:text="${
+                                                 #numbers.formatDecimal(
+                                                     product.price,
+                                                     1, 'POINT', 0, 'COMMA'
+                                                 )
+                                             } + ' ₫'">
+                                        </del>
+                                    </h4>
+
+                                    <p class="product-stock"
+                                       th:classappend="${product.stockQuantity > 0}
+                                           ? 'text-success' : 'text-danger'"
+                                       th:text="${product.stockQuantity > 0}
+                                           ? 'Còn hàng' : 'Hết hàng'">
+                                    </p>
+
+                                    <div class="product-btns">
+                                        <a th:href="@{/products/{slug}(
+                                               slug=${product.slug}
+                                           )}">
+                                            <i class="fa fa-eye"
+                                               aria-hidden="true"></i>
+                                            Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="clearfix visible-sm visible-xs"
+                             th:if="${item.count % 2 == 0}">
+                        </div>
+
+                        <div class="clearfix visible-md visible-lg"
+                             th:if="${item.count % 3 == 0}">
+                        </div>
+                    </th:block>
+                </div>
+
+                <!-- Phân trang -->
+                <div class="store-filter clearfix">
+                    <span class="store-qty"
+                          th:if="${!products.empty}"
+                          th:text="'Hiển thị '
+                              + ${products.number * products.size + 1}
+                              + '–'
+                              + ${products.number * products.size
+                                  + products.numberOfElements}
+                              + ' / '
+                              + ${products.totalElements}
+                              + ' sản phẩm'">
+                    </span>
+
+                    <nav th:if="${products.totalPages > 1}"
+                         aria-label="Phân trang sản phẩm">
+                        <ul class="store-pagination">
+                            <li th:if="${products.hasPrevious()}">
+                                <a th:href="@{/products(
+                                       page=${products.number - 1},
+                                       size=${products.size},
+                                       keyword=${keyword},
+                                       categoryId=${categoryId}
+                                   )}"
+                                   aria-label="Trang trước">
+                                    <i class="fa fa-angle-left"
+                                       aria-hidden="true"></i>
+                                </a>
+                            </li>
+
+                            <li class="active"
+                                aria-current="page"
+                                th:text="${products.number + 1}">
+                            </li>
+
+                            <li th:if="${products.hasNext()}">
+                                <a th:href="@{/products(
+                                       page=${products.number + 1},
+                                       size=${products.size},
+                                       keyword=${keyword},
+                                       categoryId=${categoryId}
+                                   )}"
+                                   aria-label="Trang sau">
+                                    <i class="fa fa-angle-right"
+                                       aria-hidden="true"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER: không còn newsletter và thông tin liên hệ giả -->
+<footer id="footer">
+    <div class="section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-sm-6">
+                    <div class="footer">
+                        <h3 class="footer-title">Về ShopTech</h3>
+                        <p>
+                            Khám phá các sản phẩm công nghệ,
+                            xem thông tin chi tiết và lựa chọn
+                            sản phẩm phù hợp với nhu cầu.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-6">
+                    <div class="footer">
+                        <h3 class="footer-title">Danh mục</h3>
+                        <ul class="footer-links">
+                            <li th:each="category : ${categories}">
+                                <a th:href="@{/products(
+                                       categoryId=${category.id}
+                                   )}"
+                                   th:text="${category.name}">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="clearfix visible-sm"></div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="footer">
+                        <h3 class="footer-title">Tài khoản</h3>
+                        <ul class="footer-links">
+                            <li>
+                                <a th:href="@{/account}">
+                                    Tài khoản của tôi
+                                </a>
+                            </li>
+                            <li sec:authorize="isAnonymous()">
+                                <a th:href="@{/login}">Đăng nhập</a>
+                            </li>
+                            <li sec:authorize="isAnonymous()">
+                                <a th:href="@{/register}">Đăng ký</a>
+                            </li>
+                            <li>
+                                <a th:href="@{/products}">
+                                    Tất cả sản phẩm
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-footer" class="section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <span class="copyright">
+                        ShopTech |
+                        This template is made with
+                        <i class="fa fa-heart-o" aria-hidden="true"></i>
+                        by
+                        <a href="https://colorlib.com"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            Colorlib
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{/user/js/jquery.min.js}"></script>
+<script th:src="@{/user/js/bootstrap.min.js}"></script>
+<script th:src="@{/user/js/slick.min.js}"></script>
+<script th:src="@{/user/js/nouislider.min.js}"></script>
+<script th:src="@{/user/js/jquery.zoom.min.js}"></script>
+<script th:src="@{/user/js/main.js}"></script>
+<th:block th:replace="~{fragments/commerce :: scripts}"/></body>
+</html>

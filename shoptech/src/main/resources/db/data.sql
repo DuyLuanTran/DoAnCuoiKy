@@ -15,7 +15,7 @@ SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));
 -- 2. INSERT USERS (Có user bình thường, user bị khoá, và user trong thùng rác)
 INSERT INTO users (id, username, email, password, full_name, phone_number, address, avatar_url, is_active, is_deleted, deleted_at, created_at) VALUES
 -- User 1: Admin
-(1, 'admin', 'admin@shoptech.com', '$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5V78GQR/q5pGjP6rEa42nK8i7O5eG', 'Quản Trị Viên ShopTech', '0901234567', 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', TRUE, FALSE, NULL, '2026-08-01 08:00:00+07'),
+(1, 'admin', 'admin@shoptech.com', '$2b$10$MrcJ0Gq.4NkI0GaKRFjHYOYhvqw3AMRT1r4S7ps35Jq.UFdNdzlb6', 'Quản Trị Viên ShopTech', '0901234567', 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', TRUE, FALSE, NULL, '2026-08-01 08:00:00+07'),
 
 -- User 2: Khách hàng mua sắm tích cực
 (2, 'nguyenvana', 'vana@gmail.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'Nguyễn Văn An', '0912345678', '123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150', TRUE, FALSE, NULL, '2026-08-10 09:30:00+07'),
@@ -29,6 +29,11 @@ INSERT INTO users (id, username, email, password, full_name, phone_number, addre
 -- User 5: TÀI KHOẢN ĐÃ CHUYỂN VÀO THÙNG RÁC (để test tính năng Khôi phục / Xoá vĩnh viễn)
 (5, 'phamthid', 'thid@gmail.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'Phạm Thị Dung (Trong thùng rác)', '0977889900', '12 Lê Duẩn, Đà Nẵng', NULL, FALSE, TRUE, '2026-09-12 11:20:00+07', '2026-08-25 10:00:00+07')
 ON CONFLICT (id) DO NOTHING;
+
+-- Keep the documented demo admin password in sync even when the seed row already exists.
+UPDATE users
+SET password = '$2b$10$MrcJ0Gq.4NkI0GaKRFjHYOYhvqw3AMRT1r4S7ps35Jq.UFdNdzlb6'
+WHERE username = 'admin';
 
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 

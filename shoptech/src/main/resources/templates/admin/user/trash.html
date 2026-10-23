@@ -1,0 +1,137 @@
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/admin-layout :: layout(
+      'Thùng rác người dùng',
+      'user-trash',
+      ~{::main}
+  )}"
+>
+  <body>
+    <main>
+      <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+          <h1 class="h3 mb-1 text-gray-800">Thùng rác người dùng</h1>
+          <p class="text-muted mb-2">Khôi phục tài khoản hoặc xóa vĩnh viễn khỏi hệ thống.</p>
+        </div>
+        <a class="btn btn-outline-primary mb-2" th:href="@{/admin/users}">
+          <i class="fas fa-users mr-1" aria-hidden="true"></i>
+          Danh sách người dùng
+        </a>
+      </div>
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h2 class="h6 m-0 font-weight-bold text-primary">Tài khoản đã xóa</h2>
+        </div>
+
+        <div class="card-body">
+          <form th:action="@{/admin/users/trash}" method="get" class="mb-4">
+            <div class="form-row align-items-end">
+              <div class="col-md-6 mb-2">
+                <label for="keyword">Tìm theo tên, email hoặc tên đăng nhập</label>
+                <input
+                  class="form-control"
+                  id="keyword"
+                  name="keyword"
+                  type="search"
+                  th:value="${keyword}"
+                  placeholder="Nhập thông tin cần tìm..."
+                />
+              </div>
+              <div class="col-md-2 mb-2">
+                <label for="size">Tài khoản mỗi trang</label>
+                <select class="form-control" id="size" name="size">
+                  <option value="10" th:selected="${trashUsers.size == 10}">10</option>
+                  <option value="20" th:selected="${trashUsers.size == 20}">20</option>
+                  <option value="50" th:selected="${trashUsers.size == 50}">50</option>
+                </select>
+              </div>
+              <div class="col-md-4 mb-2">
+                <button class="btn btn-primary mr-1" type="submit">Tìm kiếm</button>
+                <a class="btn btn-outline-secondary" th:href="@{/admin/users/trash}">Xóa lọc</a>
+              </div>
+            </div>
+          </form>
+
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <caption class="sr-only">Tài khoản người dùng trong thùng rác</caption>
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">ID</th>
+                  <th scope="col">Người dùng</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Ngày xóa</th>
+                  <th scope="col">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="user : ${trashUsers.content}">
+                  <td th:text="${user.id}"></td>
+                  <td>
+                    <strong th:text="${user.fullName}"></strong>
+                    <span class="d-block text-muted small" th:text="${user.username}"></span>
+                  </td>
+                  <td th:text="${user.email}"></td>
+                  <td th:text="${user.deletedAt != null ? #temporals.format(user.deletedAt, 'dd/MM/yyyy HH:mm') : '—'}"></td>
+                  <td>
+                    <div class="d-flex flex-wrap">
+                      <a
+                        class="btn btn-sm btn-outline-primary mr-1 mb-1"
+                        th:href="@{/admin/users/{id}/restore(id=${user.id})}"
+                      >Khôi phục</a>
+                      <form
+                        class="mb-1"
+                        th:action="@{/admin/users/{id}/force-delete(id=${user.id})}"
+                        method="post"
+                        onsubmit="return confirm('Xóa vĩnh viễn tài khoản này? Thao tác không thể hoàn tác.');"
+                      >
+                        <button class="btn btn-sm btn-outline-danger" type="submit">Xóa vĩnh viễn</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <tr th:if="${trashUsers.empty}">
+                  <td colspan="5" class="text-center text-muted py-4">
+                    Thùng rác đang trống.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <p
+              class="text-muted mb-2"
+              th:text="'Tổng cộng: ' + ${trashUsers.totalElements} + ' tài khoản'"
+            ></p>
+            <nav th:if="${trashUsers.totalPages > 1}" aria-label="Phân trang thùng rác người dùng">
+              <ul class="pagination mb-2">
+                <li class="page-item" th:if="${trashUsers.hasPrevious()}">
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/users/trash(page=${trashUsers.number - 1},size=${trashUsers.size},keyword=${keyword})}"
+                  >Trước</a>
+                </li>
+                <li class="page-item disabled">
+                  <span
+                    class="page-link"
+                    th:text="'Trang ' + ${trashUsers.number + 1} + ' / ' + ${trashUsers.totalPages}"
+                  ></span>
+                </li>
+                <li class="page-item" th:if="${trashUsers.hasNext()}">
+                  <a
+                    class="page-link"
+                    th:href="@{/admin/users/trash(page=${trashUsers.number + 1},size=${trashUsers.size},keyword=${keyword})}"
+                  >Sau</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

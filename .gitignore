@@ -1,0 +1,4 @@
+# Person 3 reports and QA evidence stay local.
+/docs/PERSON3_*.md
+/docs/person3-*-evidence/
+/docs/person3-*-evidence.zip

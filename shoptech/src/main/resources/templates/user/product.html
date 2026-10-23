@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title th:text="${product.name} + ' | ShopTech'">Chi tiết sản phẩm</title>
+
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700"
+    />
+
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/user/css/slick.css}" />
+    <link rel="stylesheet" th:href="@{/user/css/slick-theme.css}" />
+    <link rel="stylesheet" th:href="@{/user/css/nouislider.min.css}" />
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}" />
+    <link rel="stylesheet" th:href="@{/user/css/style.css}" />
+
+    <!-- Dùng lại phần xử lý header và chữ dài của trang danh sách -->
+    <style th:replace="~{user/store :: style}"></style>
+
+    <style>
+      #product-main-img .product-preview img {
+        width: 100%;
+        height: 400px;
+        object-fit: contain;
+      }
+
+      #product-imgs .product-preview img {
+        width: 100%;
+        height: 100px;
+        padding: 8px;
+        object-fit: contain;
+      }
+
+      .product-details .product-name {
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
+
+      .product-details .product-price {
+        line-height: 1.5;
+      }
+
+      .product-details .product-old-price {
+        display: block;
+      }
+
+      .product-text {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        line-height: 1.8;
+      }
+
+      .product-summary {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        line-height: 1.8;
+      }
+
+      .product-details .product-links {
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+      }
+
+      .product-details .add-to-cart-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .product-details .add-to-cart .qty-label {
+        margin-bottom: 15px;
+      }
+
+      .product-details .add-to-cart .input-number input {
+        padding-right: 8px;
+      }
+
+      @media (max-width: 991px) {
+        #product-main-img .product-preview img {
+          height: 320px;
+        }
+
+        .product-details {
+          margin-top: 30px;
+        }
+      }
+
+      @media (max-width: 767px) {
+        #product-main-img .product-preview img {
+          height: 260px;
+        }
+
+        .product-details .product-name {
+          font-size: 21px;
+        }
+      }
+    </style>
+  <th:block th:replace="~{fragments/commerce :: head}"/></head>
+
+  <body>
+    <!-- Dùng nguyên header và menu của trang danh sách -->
+    <header th:replace="~{user/store :: header}"></header>
+    <nav th:replace="~{user/store :: #navigation}"></nav>
+
+    <!-- BREADCRUMB -->
+    <div id="breadcrumb" class="section">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <ul class="breadcrumb-tree">
+              <li>
+                <a th:href="@{/products}">Sản phẩm</a>
+              </li>
+              <li>
+                <a
+                  th:href="@{/products(
+                               categoryId=${product.category.id}
+                           )}"
+                  th:text="${product.category.name}"
+                >
+                </a>
+              </li>
+              <li class="active" th:text="${product.name}"></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION -->
+    <div class="section">
+      <div class="container">
+        <div class="row">
+          <!-- Ảnh lớn: giữ vị trí của Electro -->
+          <div class="col-md-5 col-md-push-2">
+            <div id="product-main-img">
+              <div
+                class="product-preview"
+                th:if="${!#strings.isEmpty(product.mainImage)}"
+              >
+                <img th:src="${product.mainImage}" th:alt="${product.name}" />
+              </div>
+
+              <div
+                class="product-preview"
+                th:each="imageUrl : ${product.imageGallery}"
+                th:if="${!#strings.isEmpty(imageUrl)}"
+              >
+                <img th:src="${imageUrl}" th:alt="${product.name}" />
+              </div>
+
+              <div
+                class="product-preview text-center"
+                th:if="${#strings.isEmpty(product.mainImage)
+                             and #arrays.isEmpty(product.imageGallery)}"
+              >
+                <p class="text-muted">Chưa có ảnh sản phẩm.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ảnh thu nhỏ -->
+          <div class="col-md-2 col-md-pull-5">
+            <div id="product-imgs">
+              <div
+                class="product-preview"
+                th:if="${!#strings.isEmpty(product.mainImage)}"
+              >
+                <img th:src="${product.mainImage}" th:alt="${product.name}" />
+              </div>
+
+              <div
+                class="product-preview"
+                th:each="imageUrl : ${product.imageGallery}"
+                th:if="${!#strings.isEmpty(imageUrl)}"
+              >
+                <img th:src="${imageUrl}" th:alt="${product.name}" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Thông tin sản phẩm -->
+          <div class="col-md-5">
+            <div class="product-details">
+              <h1 class="product-name" th:text="${product.name}"></h1>
+
+              <p class="text-muted" th:if="${!#strings.isEmpty(product.sku)}">
+                Mã sản phẩm:
+                <strong th:text="${product.sku}"></strong>
+              </p>
+
+              <div>
+                <h2 class="product-price">
+                  <span
+                    th:text="${
+                                #numbers.formatDecimal(
+                                    product.discountPrice != null
+                                        ? product.discountPrice
+                                        : product.price,
+                                    1, 'POINT', 0, 'COMMA'
+                                )
+                            } + ' ₫'"
+                  >
+                  </span>
+
+                  <del
+                    class="product-old-price"
+                    th:if="${product.discountPrice != null}"
+                    th:text="${
+                                     #numbers.formatDecimal(
+                                         product.price,
+                                         1, 'POINT', 0, 'COMMA'
+                                     )
+                                 } + ' ₫'"
+                  >
+                  </del>
+                </h2>
+
+                <p>
+                  <span
+                    class="product-available"
+                    th:text="${product.stockQuantity > 0}
+                                      ? 'Còn hàng' : 'Hết hàng'"
+                  >
+                  </span>
+                </p>
+              </div>
+
+              <p
+                class="product-summary"
+                th:if="${!#strings.isEmpty(product.description)}"
+                th:text="${product.description}"
+              ></p>
+
+              <!-- Thêm sản phẩm qua API giỏ hàng -->
+              <div class="add-to-cart">
+                <div class="qty-label">
+                  <label for="quantity">Số lượng</label>
+                  <div class="input-number">
+                    <input
+                      id="quantity"
+                      name="quantity"
+                      type="number"
+                      value="1"
+                      min="1"
+                      step="1"
+                      th:max="${product.stockQuantity > 0}
+                                           ? ${product.stockQuantity} : 1"
+                      th:disabled="${product.stockQuantity <= 0}"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  class="add-to-cart-btn"
+                  type="button"
+                  th:disabled="${product.stockQuantity <= 0}" th:attr="data-add-product=${product.id}"
+                >
+                  <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                  Thêm vào giỏ
+                </button>
+              </div>
+
+              <ul class="product-links">
+                <li>Danh mục:</li>
+                <li>
+                  <a
+                    th:href="@{/products(
+                                   categoryId=${product.category.id}
+                               )}"
+                    th:text="${product.category.name}"
+                  >
+                  </a>
+                </li>
+              </ul>
+
+              <ul class="product-links">
+                <li>
+                  <a th:href="@{/products}">
+                    <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                    Quay lại danh sách
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Tab nội dung gốc của Electro -->
+          <div class="col-md-12">
+            <div id="product-tab">
+              <ul class="tab-nav" role="tablist">
+                <li class="active" role="presentation">
+                  <a
+                    data-toggle="tab"
+                    href="#description"
+                    role="tab"
+                    aria-controls="description"
+                  >
+                    Mô tả sản phẩm
+                  </a>
+                </li>
+                <li role="presentation">
+                  <a
+                    data-toggle="tab"
+                    href="#specifications"
+                    role="tab"
+                    aria-controls="specifications"
+                  >
+                    Thông số kỹ thuật
+                  </a>
+                </li>
+              </ul>
+
+              <div class="tab-content">
+                <div
+                  id="description"
+                  class="tab-pane fade in active"
+                  role="tabpanel"
+                >
+                  <div class="row">
+                    <div class="col-md-12">
+                      <p
+                        class="product-text"
+                        th:text="${
+                                           #strings.isEmpty(product.description)
+                                               ? 'Chưa có mô tả sản phẩm.'
+                                               : product.description
+                                       }"
+                      ></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="specifications" class="tab-pane fade" role="tabpanel">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <p
+                        class="product-text"
+                        th:text="${
+                                           #strings.isEmpty(product.specifications)
+                                               ? 'Chưa có thông số kỹ thuật.'
+                                               : product.specifications
+                                       }"
+                      ></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dùng nguyên footer của trang danh sách -->
+    <footer th:replace="~{user/store :: #footer}"></footer>
+
+    <script th:src="@{/user/js/jquery.min.js}"></script>
+    <script th:src="@{/user/js/bootstrap.min.js}"></script>
+    <script th:src="@{/user/js/slick.min.js}"></script>
+    <script th:src="@{/user/js/nouislider.min.js}"></script>
+    <script th:src="@{/user/js/jquery.zoom.min.js}"></script>
+    <script th:src="@{/user/js/main.js}"></script>
+  <th:block th:replace="~{fragments/commerce :: scripts}"/></body>
+</html>

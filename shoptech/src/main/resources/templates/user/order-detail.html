@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chi tiết đơn hàng | ShopTech</title>
+<th:block th:replace="~{fragments/commerce :: head}"/><link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"></head>
+<body><header id="header"><div class="container"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div></header><main class="section container">
+<nav th:replace="~{fragments/commerce :: links}"></nav><a th:href="@{/orders}">Lịch sử đơn hàng</a>
+<section th:fragment="detail"><h1 th:text="${order.code}"></h1>
+<p th:text="'Khách hàng: ' + ${order.customer}"></p>
+<p th:text="'Ngày đặt: ' + ${#temporals.format(order.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')),'dd/MM/yyyy HH:mm')}"></p>
+<p>Trạng thái: <strong id="order-status" th:attr="data-order-id=${order.id}" th:text="${order.status}"></strong></p>
+<p th:text="${order.recipientName} + ' · ' + ${order.recipientPhone}"></p><p th:text="${order.shippingAddress}"></p><p th:text="${order.note}"></p>
+<div class="table-responsive"><table class="table"><thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead><tbody>
+<tr th:each="item : ${order.items}"><td><img th:if="${item.image != null}" th:src="${item.image}" alt="" width="60" loading="lazy"><span th:text="${item.name}"></span></td><td th:text="${#numbers.formatDecimal(item.price,1,'POINT',0,'COMMA')}+' ₫'"></td><td th:text="${item.quantity}"></td><td th:text="${#numbers.formatDecimal(item.subtotal,1,'POINT',0,'COMMA')}+' ₫'"></td></tr></tbody></table></div>
+<p th:text="'Tiền hàng: ' + ${#numbers.formatDecimal(order.subtotal,1,'POINT',0,'COMMA')}+' ₫'"></p><p th:text="'Phí giao hàng: ' + ${#numbers.formatDecimal(order.shippingFee,1,'POINT',0,'COMMA')}+' ₫'"></p>
+<h3 th:text="'Tổng tiền: ' + ${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')}+' ₫'"></h3><p>Thanh toán: <span th:text="${order.paymentMethod}"></span> · <span th:text="${order.paymentStatus}"></span></p>
+</section></main><th:block th:replace="~{fragments/commerce :: scripts}"/></body></html>

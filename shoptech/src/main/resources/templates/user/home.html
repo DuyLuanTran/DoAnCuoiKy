@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trang khách hàng | ShopTech</title>
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/style.css}">
+<th:block th:replace="~{fragments/commerce :: head}"/></head>
+<body>
+<header>
+    <div id="top-header">
+        <div class="container">
+            <ul class="header-links pull-left">
+                <li><a th:href="@{/products}"><i class="fa fa-home"></i> ShopTech</a></li>
+            </ul>
+            <ul class="header-links pull-right">
+                <li><a th:href="@{/account}"><i class="fa fa-user"></i> <span th:text="${account.fullName}"></span></a></li>
+                <li>
+                    <form th:action="@{/logout}" method="post" class="store-logout-form">
+                        <button type="submit"><i class="fa fa-sign-out"></i> Đăng xuất</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="header-logo"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<main class="container user-home">
+    <section class="user-home-card">
+        <p class="eyebrow">KHU VỰC KHÁCH HÀNG</p>
+        <h1>Xin chào, <span th:text="${account.fullName}"></span>!</h1>
+        <p class="muted">Bạn đã đăng nhập thành công. Từ đây, bạn có thể tiếp tục mua sắm hoặc quản lý thông tin cá nhân.</p>
+        <div class="user-home-actions"><a class="primary-btn" th:href="@{/cart}">Giỏ hàng</a><a class="primary-btn" th:href="@{/orders}">Lịch sử đơn hàng</a>
+            <a class="primary-btn" th:href="@{/products}"><i class="fa fa-shopping-bag"></i> Tiếp tục mua sắm</a>
+            <a class="primary-btn" th:href="@{/account}"><i class="fa fa-user"></i> Thông tin tài khoản</a>
+            <a sec:authorize="hasRole('ADMIN')" class="primary-btn" th:href="@{/admin}"><i class="fa fa-dashboard"></i> Trang quản trị</a>
+        </div>
+    </section>
+</main>
+<th:block th:replace="~{fragments/commerce :: scripts}"/></body>
+</html>

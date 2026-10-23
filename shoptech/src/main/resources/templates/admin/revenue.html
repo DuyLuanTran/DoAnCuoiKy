@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Doanh thu','revenue',~{::main})}"><body><main>
+<th:block th:replace="~{fragments/commerce :: head}"/><h1>Thống kê doanh thu</h1>
+<p>Đơn COMPLETED, không bị xóa mềm. Ghi nhận theo ngày tạo đơn, múi giờ Việt Nam (Asia/Ho_Chi_Minh).</p>
+<form id="revenue-filter" class="form-inline mb-3"><label for="from">Từ ngày</label><input id="from" name="from" class="form-control mx-2" type="date" th:value="${from}" required><label for="to">Đến ngày</label><input id="to" name="to" class="form-control mx-2" type="date" th:value="${to}" required>
+<select name="group" class="form-control mx-2" aria-label="Nhóm thống kê"><option value="DAY">Theo ngày</option><option value="MONTH">Theo tháng</option></select><button class="btn btn-primary">Xem thống kê</button></form>
+<p id="revenue-message" role="status" aria-live="polite">Đang tải…</p><h3 id="revenue-total"></h3><p id="revenue-count"></p>
+<div class="card"><div class="card-body"><canvas id="revenue-chart" aria-label="Biểu đồ doanh thu" role="img"></canvas></div></div>
+<div class="table-responsive mt-3"><table class="table"><thead><tr><th>Ngày / Tháng</th><th>Doanh thu</th><th>Số đơn hoàn tất</th></tr></thead><tbody id="revenue-table"></tbody></table></div>
+<script th:src="@{/admin/vendor/chart.js/chart.js/Chart.min.js}"></script><th:block th:replace="~{fragments/commerce :: scripts}"/><script th:src="@{/admin/js/revenue.js}" defer></script>
+</main></body></html>

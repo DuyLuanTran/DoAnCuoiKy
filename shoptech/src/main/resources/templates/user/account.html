@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tài khoản | ShopTech</title>
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/style.css}">
+</head>
+<body>
+<header>
+    <div id="top-header">
+        <div class="container">
+            <ul class="header-links pull-left">
+                <li><a th:href="@{/}"><i class="fa fa-home"></i> ShopTech</a></li>
+            </ul>
+            <ul class="header-links pull-right">
+                <li><a th:href="@{/account}"><i class="fa fa-user"></i> <span th:text="${account.fullName}"></span></a></li>
+                <li>
+                    <form th:action="@{/logout}" method="post" class="store-logout-form">
+                        <button type="submit"><i class="fa fa-sign-out"></i> Đăng xuất</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="header-logo"><a th:href="@{/}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<main class="container" style="padding-top: 40px; padding-bottom: 60px;">
+    <div class="section-title"><h3 class="title">Thông tin tài khoản</h3></div>
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="billing-details">
+                <div class="section-title"><h4 class="title">Thông tin cá nhân</h4></div>
+                <p><strong>Họ và tên:</strong> <span th:text="${account.fullName}"></span></p>
+                <p><strong>Tên đăng nhập:</strong> <span th:text="${account.username}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${account.email}"></span></p>
+                <p><strong>Số điện thoại:</strong> <span th:text="${account.phoneNumber != null ? account.phoneNumber : 'Chưa cập nhật'}"></span></p>
+                <p><strong>Địa chỉ:</strong> <span th:text="${account.address != null ? account.address : 'Chưa cập nhật'}"></span></p>
+                <p><strong>Vai trò:</strong>
+                    <span th:each="role : ${account.roles}" th:text="${role.name == 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng'}"></span>
+                </p>
+                <a class="primary-btn" th:href="@{/products}">Tiếp tục mua sắm</a>
+                <a sec:authorize="hasRole('ADMIN')" class="primary-btn" th:href="@{/admin/users}">Quản trị</a>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

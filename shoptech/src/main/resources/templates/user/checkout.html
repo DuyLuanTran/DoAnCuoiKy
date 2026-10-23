@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Thanh toán | ShopTech</title>
+<th:block th:replace="~{fragments/commerce :: head}"/>
+<link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"></head>
+<body><header id="header"><div class="container"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div></header>
+<main class="section container"><nav th:replace="~{fragments/commerce :: links}"></nav><h1>Thanh toán</h1>
+<div class="row"><div class="col-md-7"><form id="checkout-form">
+<div class="billing-details"><h3 class="title">Thông tin giao hàng</h3>
+<div class="form-group"><label for="recipientName">Tên người nhận</label><input id="recipientName" name="recipientName" class="input" maxlength="100" required autocomplete="name"></div>
+<div class="form-group"><label for="recipientPhone">Số điện thoại</label><input id="recipientPhone" name="recipientPhone" class="input" maxlength="20" minlength="8" required autocomplete="tel"></div>
+<div class="form-group"><label for="shippingAddress">Địa chỉ giao hàng</label><textarea id="shippingAddress" name="shippingAddress" class="input" maxlength="2000" required autocomplete="street-address"></textarea></div>
+<div class="form-group"><label for="note">Ghi chú</label><textarea id="note" name="note" class="input" maxlength="2000"></textarea></div>
+<p>Thanh toán khi nhận hàng (COD). Phí giao hàng: 0 ₫.</p><input type="hidden" name="paymentMethod" value="COD">
+<button id="place-order" type="submit" class="primary-btn" disabled>Xác nhận đặt hàng</button></div></form></div>
+<div class="col-md-5 order-details"><h3 class="title">Đơn hàng của bạn</h3><div id="checkout-summary" aria-live="polite">Đang tải…</div><p>Giá và tồn kho được kiểm tra lại khi đặt hàng.</p></div></div>
+</main><th:block th:replace="~{fragments/commerce :: scripts}"/><script th:src="@{/user/js/checkout.js}" defer></script></body></html>
