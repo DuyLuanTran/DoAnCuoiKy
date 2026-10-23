@@ -5,6 +5,7 @@ import com.example.shoptech.dto.AdminUserForm;
 import com.example.shoptech.entity.Role;
 import com.example.shoptech.entity.User;
 import com.example.shoptech.repository.RoleRepository;
+import com.example.shoptech.repository.OrderRepository;
 import com.example.shoptech.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,11 +22,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+                           OrderRepository orderRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.orderRepository = orderRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -103,19 +107,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> getActiveUsers(String keyword, Pageable pageable) {
-        String searchTerm = keyword == null || keyword.isBlank() ? null : keyword.trim();
+        String searchTerm = keyword == null ? "" : keyword.trim();
         return userRepository.searchActiveUsers(searchTerm, pageable);
     }
 
     @Override
-    public Page<User> getTrashUsers(Pageable pageable) {
-        return userRepository.searchTrashUsers(null, pageable);
+    public Page<User> getTrashUsers(String keyword, Pageable pageable) {
+        String searchTerm = keyword == null ? "" : keyword.trim();
+        return userRepository.searchTrashUsers(searchTerm, pageable);
     }
 
     @Override
     @Transactional
     public void toggleActiveStatus(Long id) {
         User user = userRepository.findById(id)
+                .filter(existingUser -> !Boolean.TRUE.equals(existingUser.getIsDeleted()))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
         user.setIsActive(!Boolean.TRUE.equals(user.getIsActive()));
         userRepository.save(user);
@@ -125,6 +131,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void moveToTrash(Long id) {
         User user = userRepository.findById(id)
+                .filter(existingUser -> !Boolean.TRUE.equals(existingUser.getIsDeleted()))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
         user.setIsDeleted(true);
         user.setDeletedAt(LocalDateTime.now());
@@ -135,6 +142,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void restoreFromTrash(Long id) {
         User user = userRepository.findById(id)
+                .filter(existingUser -> Boolean.TRUE.equals(existingUser.getIsDeleted()))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
         user.setIsDeleted(false);
         user.setDeletedAt(null);
@@ -145,7 +153,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void forceDelete(Long id) {
         User user = userRepository.findById(id)
+                .filter(existingUser -> Boolean.TRUE.equals(existingUser.getIsDeleted()))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
+        if (orderRepository.existsByUser_Id(id)) {
+            throw new IllegalArgumentException(
+                    "Không thể xóa vĩnh viễn tài khoản đã có đơn hàng. Hãy giữ tài khoản trong thùng rác để bảo toàn lịch sử đơn hàng.");
+        }
         userRepository.delete(user);
     }
 }

@@ -239,3 +239,45 @@ spring.datasource.hikari.keepalive-time=45000
 
 spring.jpa.hibernate.ddl-auto=update
 ```
+
+---
+
+## 5. Sửa lỗi kiểu dữ liệu `users.username` trên database hiện có
+
+Nếu log PostgreSQL có lỗi như:
+
+```text
+invalid input syntax for type bigint: "admin"
+```
+
+thì cột `users.username` trên database đang là kiểu số, không khớp với ứng dụng
+(ứng dụng lưu tên đăng nhập dạng chuỗi). Dòng `Secured GET /error` thường chỉ
+là log xuất hiện sau khi request gốc thất bại, không phải nguyên nhân.
+
+### Kiểm tra kiểu cột
+
+Chạy câu lệnh sau trong Supabase SQL Editor:
+
+```sql
+SELECT table_schema, data_type, character_maximum_length
+FROM information_schema.columns
+WHERE table_name = 'users'
+  AND column_name = 'username';
+```
+
+Nếu kết quả là `bigint`, trước khi sửa hãy kiểm tra đúng schema/database và tạo
+bản sao lưu. Câu lệnh sau chuyển các giá trị hiện có thành chuỗi, không xóa dữ
+liệu:
+
+```sql
+ALTER TABLE public.users
+    ALTER COLUMN username TYPE VARCHAR(50)
+    USING username::text;
+```
+
+Nếu câu truy vấn kiểm tra trả về schema khác `public`, thay `public` trong câu
+lệnh `ALTER TABLE` bằng schema thực tế. Sau khi chạy, xác nhận kiểu cột là
+`character varying`, rồi khởi động lại ứng dụng và đăng nhập lại.
+
+Không chạy lại `schema.sql` trên database đang có dữ liệu: file đó tạo lại schema
+và có các lệnh xóa bảng.

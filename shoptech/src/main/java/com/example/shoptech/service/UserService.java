@@ -22,7 +22,7 @@ public interface UserService {
 
     Page<User> getActiveUsers(String keyword, Pageable pageable);
 
-    Page<User> getTrashUsers(Pageable pageable);
+    Page<User> getTrashUsers(String keyword, Pageable pageable);
 
     void toggleActiveStatus(Long id);
 

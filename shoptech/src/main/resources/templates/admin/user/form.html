@@ -1,49 +1,231 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${formTitle} + ' | ShopTech'"></title>
-    <link rel="stylesheet" th:href="@{/admin/css/sb-admin-2.min.css}">
-    <link rel="stylesheet" th:href="@{/admin/css/user-management.css}">
-</head>
-<body class="admin-page">
-<header class="topbar">
-    <a class="brand" th:href="@{/admin/users}">SHOPTECH <span>Quản trị</span></a>
-    <nav><a class="active" th:href="@{/admin/users}">Người dùng</a><a th:href="@{/admin/users/trash}">Thùng rác</a><a th:href="@{/account}">Tài khoản</a></nav>
-    <form th:action="@{/logout}" method="post"><button class="button secondary" type="submit">Đăng xuất</button></form>
-</header>
-<main class="page-container narrow-container">
-    <div class="page-heading">
-        <div><p class="eyebrow">QUẢN TRỊ HỆ THỐNG</p><h1 th:text="${formTitle}"></h1><p class="muted">Thông tin tài khoản được lưu trong hệ thống ShopTech.</p></div>
-    </div>
-    <section class="panel form-panel">
-        <div class="notice error" th:if="${#fields.hasGlobalErrors()}">
-            <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+<!doctype html>
+<html
+  lang="vi"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/admin-layout :: layout(
+      ${formTitle},
+      'users',
+      ~{::main}
+  )}"
+>
+  <body>
+    <main>
+      <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+          <h1 class="h3 mb-1 text-gray-800" th:text="${formTitle}"></h1>
+          <p class="text-muted mb-2">Nhập thông tin tài khoản người dùng.</p>
         </div>
-        <form th:if="${!editing}" th:action="@{${formAction}}" th:object="${registerForm}" method="post">
-            <div class="form-grid">
-                <div class="field"><label for="fullName">Họ và tên</label><input id="fullName" th:field="*{fullName}" required><small class="field-error" th:errors="*{fullName}"></small></div>
-                <div class="field"><label for="username">Tên đăng nhập</label><input id="username" th:field="*{username}" minlength="3" maxlength="50" required><small class="field-error" th:errors="*{username}"></small></div>
-                <div class="field"><label for="email">Email</label><input id="email" th:field="*{email}" type="email" required><small class="field-error" th:errors="*{email}"></small></div>
-                <div class="field"><label for="phoneNumber">Số điện thoại</label><input id="phoneNumber" th:field="*{phoneNumber}" type="tel"><small class="field-error" th:errors="*{phoneNumber}"></small></div>
-                <div class="field field-full"><label for="address">Địa chỉ</label><input id="address" th:field="*{address}" maxlength="255"><small class="field-error" th:errors="*{address}"></small></div>
-                <div class="field field-full"><label for="password">Mật khẩu (ít nhất 6 ký tự)</label><input id="password" th:field="*{password}" type="password" minlength="6" required><small class="field-error" th:errors="*{password}"></small></div>
+        <a class="btn btn-outline-secondary mb-2" th:href="@{/admin/users}">
+          Quay lại danh sách
+        </a>
+      </div>
+
+      <div class="row">
+        <div class="col-xl-8 col-lg-10">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+              <h2
+                class="h6 m-0 font-weight-bold text-primary"
+                th:text="${editing} ? 'Thông tin tài khoản' : 'Tạo tài khoản mới'"
+              ></h2>
             </div>
-            <div class="form-actions"><a class="button secondary" th:href="@{/admin/users}">Hủy</a><button class="button primary" type="submit">Tạo tài khoản</button></div>
-        </form>
-        <form th:if="${editing}" th:action="@{${formAction}}" th:object="${userForm}" method="post">
-            <div class="form-grid">
-                <div class="field"><label for="fullName">Họ và tên</label><input id="fullName" th:field="*{fullName}" required><small class="field-error" th:errors="*{fullName}"></small></div>
-                <div class="field"><label for="username">Tên đăng nhập</label><input id="username" th:field="*{username}" minlength="3" maxlength="50" required><small class="field-error" th:errors="*{username}"></small></div>
-                <div class="field"><label for="email">Email</label><input id="email" th:field="*{email}" type="email" required><small class="field-error" th:errors="*{email}"></small></div>
-                <div class="field"><label for="phoneNumber">Số điện thoại</label><input id="phoneNumber" th:field="*{phoneNumber}" type="tel"><small class="field-error" th:errors="*{phoneNumber}"></small></div>
-                <div class="field field-full"><label for="address">Địa chỉ</label><input id="address" th:field="*{address}" maxlength="255"><small class="field-error" th:errors="*{address}"></small></div>
-                <div class="field field-full"><label for="password">Mật khẩu mới (để trống nếu không đổi)</label><input id="password" th:field="*{password}" type="password" minlength="6" autocomplete="new-password"><small class="field-error" th:errors="*{password}"></small></div>
+            <div class="card-body">
+              <form
+                th:if="${!editing}"
+                th:action="@{${formAction}}"
+                th:object="${registerForm}"
+                method="post"
+              >
+                <div
+                  class="alert alert-danger"
+                  role="alert"
+                  th:if="${#fields.hasGlobalErrors()}"
+                >
+                  <ul class="mb-0">
+                    <li th:each="error : ${#fields.globalErrors()}" th:text="${error}"></li>
+                  </ul>
+                </div>
+
+                <div class="form-group">
+                  <label for="fullName">Họ và tên <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'"
+                    id="fullName"
+                    th:field="*{fullName}"
+                    maxlength="100"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{fullName}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="username">Tên đăng nhập <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'"
+                    id="username"
+                    th:field="*{username}"
+                    minlength="3"
+                    maxlength="50"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{username}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="email">Email <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                    id="email"
+                    th:field="*{email}"
+                    type="email"
+                    maxlength="100"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{email}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="phoneNumber">Số điện thoại</label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid'"
+                    id="phoneNumber"
+                    th:field="*{phoneNumber}"
+                    type="tel"
+                  />
+                  <div class="invalid-feedback" th:errors="*{phoneNumber}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="address">Địa chỉ</label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'"
+                    id="address"
+                    th:field="*{address}"
+                    maxlength="255"
+                  />
+                  <div class="invalid-feedback" th:errors="*{address}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="password">Mật khẩu <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
+                    id="password"
+                    th:field="*{password}"
+                    type="password"
+                    minlength="6"
+                    autocomplete="new-password"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{password}"></div>
+                  <small class="form-text text-muted">Mật khẩu phải có ít nhất 6 ký tự.</small>
+                </div>
+                <div class="d-flex justify-content-end flex-wrap mt-4">
+                  <a class="btn btn-outline-secondary mr-2 mb-2" th:href="@{/admin/users}">Hủy</a>
+                  <button class="btn btn-primary mb-2" type="submit">Tạo tài khoản</button>
+                </div>
+              </form>
+
+              <form
+                th:if="${editing}"
+                th:action="@{${formAction}}"
+                th:object="${userForm}"
+                method="post"
+              >
+                <div
+                  class="alert alert-danger"
+                  role="alert"
+                  th:if="${#fields.hasGlobalErrors()}"
+                >
+                  <ul class="mb-0">
+                    <li th:each="error : ${#fields.globalErrors()}" th:text="${error}"></li>
+                  </ul>
+                </div>
+
+                <div class="form-group">
+                  <label for="fullName">Họ và tên <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'"
+                    id="fullName"
+                    th:field="*{fullName}"
+                    maxlength="100"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{fullName}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="username">Tên đăng nhập <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'"
+                    id="username"
+                    th:field="*{username}"
+                    minlength="3"
+                    maxlength="50"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{username}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="email">Email <span class="text-danger">*</span></label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                    id="email"
+                    th:field="*{email}"
+                    type="email"
+                    maxlength="100"
+                    required
+                  />
+                  <div class="invalid-feedback" th:errors="*{email}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="phoneNumber">Số điện thoại</label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid'"
+                    id="phoneNumber"
+                    th:field="*{phoneNumber}"
+                    type="tel"
+                  />
+                  <div class="invalid-feedback" th:errors="*{phoneNumber}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="address">Địa chỉ</label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'"
+                    id="address"
+                    th:field="*{address}"
+                    maxlength="255"
+                  />
+                  <div class="invalid-feedback" th:errors="*{address}"></div>
+                </div>
+                <div class="form-group">
+                  <label for="password">Mật khẩu mới</label>
+                  <input
+                    class="form-control"
+                    th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"
+                    id="password"
+                    th:field="*{password}"
+                    type="password"
+                    minlength="6"
+                    autocomplete="new-password"
+                  />
+                  <div class="invalid-feedback" th:errors="*{password}"></div>
+                  <small class="form-text text-muted">Để trống nếu không muốn đổi mật khẩu.</small>
+                </div>
+                <div class="d-flex justify-content-end flex-wrap mt-4">
+                  <a class="btn btn-outline-secondary mr-2 mb-2" th:href="@{/admin/users}">Hủy</a>
+                  <button class="btn btn-primary mb-2" type="submit">Lưu thay đổi</button>
+                </div>
+              </form>
             </div>
-            <div class="form-actions"><a class="button secondary" th:href="@{/admin/users}">Hủy</a><button class="button primary" type="submit">Lưu thay đổi</button></div>
-        </form>
-    </section>
-</main>
-</body>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
 </html>

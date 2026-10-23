@@ -116,11 +116,13 @@ public class AdminUserController {
 
     @GetMapping("/trash")
     public String listTrashUsers(
+            @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model) {
         Pageable pageable = PageRequest.of(Math.max(0, page), normalizeSize(size), Sort.by("deletedAt").descending());
-        model.addAttribute("trashUsers", userService.getTrashUsers(pageable));
+        model.addAttribute("trashUsers", userService.getTrashUsers(keyword, pageable));
+        model.addAttribute("keyword", keyword);
         return "admin/user/trash";
     }
 
@@ -133,6 +135,25 @@ public class AdminUserController {
             redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
         }
         return "redirect:/admin/users";
+    }
+
+    @GetMapping("/{id}/restore")
+    public String restoreForm(
+            @PathVariable Long id,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        User user = userService.findById(id)
+                .filter(existingUser -> Boolean.TRUE.equals(existingUser.getIsDeleted()))
+                .orElse(null);
+        if (user == null) {
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    "Không tìm thấy tài khoản trong thùng rác cần khôi phục.");
+            return "redirect:/admin/users/trash";
+        }
+
+        model.addAttribute("user", user);
+        return "admin/user/restore";
     }
 
     @PostMapping("/{id}/delete")
