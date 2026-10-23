@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
@@ -236,6 +236,192 @@
 				overflow-wrap: anywhere;
 				line-height: 1.5;
 			}
+            /* Căn giữa nội dung ba cột footer */
+            #footer .store-footer-columns .footer {
+                text-align: center;
+            }
+
+            #footer .store-footer-columns .footer > p {
+                max-width: 320px;
+                margin-right: auto;
+                margin-left: auto;
+                line-height: 1.8;
+            }
+
+            #footer .store-footer-columns .footer-links {
+                padding-left: 0;
+                list-style: none;
+            }
+
+            #footer .store-footer-columns .footer-links a {
+                overflow-wrap: anywhere;
+            }
+            /* Tiêu đề danh mục và kết quả ngang hàng với các ô sắp xếp */
+            #catalog-list .catalog-toolbar-row {
+                display: flex;
+                align-items: flex-end;
+                margin-bottom: 24px;
+            }
+
+            #catalog-list .catalog-toolbar-row::before,
+            #catalog-list .catalog-toolbar-row::after {
+                display: none;
+            }
+
+            #catalog-list .catalog-list-heading {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 20px;
+            }
+
+            #catalog-list .catalog-category-title {
+                margin: 0;
+                padding: 8px 0;
+                font-size: 18px;
+                line-height: 24px;
+                text-transform: uppercase;
+            }
+
+            #catalog-list .catalog-toolbar {
+                display: flex;
+                flex-shrink: 0;
+                align-items: flex-end;
+                justify-content: flex-end;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            #catalog-list .catalog-toolbar label {
+                display: flex;
+                flex-direction: column;
+                gap: 7px;
+                margin: 0;
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            #catalog-list .catalog-toolbar .input-select {
+                min-width: 90px;
+            }
+
+            #catalog-list .catalog-toolbar button {
+                height: 40px;
+                padding: 0 16px;
+                border: 1px solid #e4e7ed;
+                background: #fff;
+            }
+
+            /* Cùng điểm bắt đầu, không dùng padding-top cố định */
+            #catalog-list #aside .aside-title {
+                margin-top: 0;
+                margin-bottom: 20px;
+                line-height: 27px;
+            }
+
+            #catalog-list .store-search-summary {
+                flex: 1;
+                min-width: 0;
+                min-height: 40px;
+                margin: 0;
+                padding: 8px 0;
+                line-height: 24px;
+            }
+
+            #catalog-list .catalog-filter-group {
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 1px solid #e4e7ed;
+            }
+
+            #catalog-list .catalog-price-inputs {
+                display: flex;
+                gap: 10px;
+            }
+
+            #catalog-list .catalog-price-inputs label {
+                flex: 1;
+                min-width: 0;
+                margin: 0;
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            #catalog-list .catalog-price-inputs input {
+                width: 100%;
+                margin-top: 8px;
+                padding: 0 10px;
+            }
+
+            #catalog-list .catalog-check {
+                display: flex;
+                align-items: flex-start;
+                gap: 9px;
+                margin: 14px 0;
+                font-size: 13px;
+                font-weight: 400;
+                cursor: pointer;
+            }
+
+            #catalog-list .catalog-check input {
+                flex-shrink: 0;
+                margin-top: 3px;
+                accent-color: #d10024;
+            }
+
+            #catalog-list .catalog-apply {
+                width: 100%;
+                margin-top: 12px;
+            }
+
+            /* Xóa bộ lọc: căn giữa và dễ nhận biết */
+            #catalog-list .catalog-reset {
+                display: block;
+                width: 100%;
+                margin-top: 12px;
+                padding: 11px 12px;
+                border: 1px solid #d10024;
+                border-radius: 22px;
+                background: #fff;
+                color: #d10024;
+                font-size: 13px;
+                font-weight: 700;
+                text-align: center;
+            }
+
+            #catalog-list .catalog-reset:hover,
+            #catalog-list .catalog-reset:focus {
+                background: #fff1f4;
+                color: #d10024;
+            }
+
+            #catalog-list .catalog-filter-error {
+                margin-bottom: 20px;
+            }
+
+            @media (max-width: 991px) {
+                #catalog-list .catalog-toolbar-row {
+                    display: block;
+                }
+
+                #catalog-list .catalog-category-title {
+                    margin-bottom: 10px;
+                }
+
+                #catalog-list .catalog-list-heading {
+                    flex-wrap: wrap;
+                    gap: 12px;
+                }
+
+                #catalog-list .catalog-toolbar {
+                    flex-shrink: 1;
+                    justify-content: flex-start;
+                }
+
+                #catalog-list .catalog-toolbar-row {
+                    margin-bottom: 25px;
+                }
+            }
     </style>
 <th:block th:replace="~{fragments/commerce :: head}"/></head>
 
@@ -297,6 +483,25 @@
                 <div class="col-md-6">
                     <div class="header-search">
                         <form th:action="@{/products}" method="get">
+                            <input th:if="${minPrice != null}"
+                                type="hidden" name="minPrice"
+                                th:value="${minPrice}">
+
+                            <input th:if="${maxPrice != null}"
+                                type="hidden" name="maxPrice"
+                                th:value="${maxPrice}">
+
+                            <input type="hidden" name="inStock"
+                                th:value="${inStock}">
+
+                            <input type="hidden" name="onSale"
+                                th:value="${onSale}">
+
+                            <input type="hidden" name="sort"
+                                th:value="${sort}">
+
+                            <input type="hidden" name="size"
+                                th:value="${pageSize}">
                             <select class="input-select"
                                     name="categoryId"
                                     aria-label="Danh mục sản phẩm">
@@ -325,7 +530,14 @@
 
                 <!-- Tài khoản -->
                 <div class="col-md-3 clearfix">
-                    <div class="header-ctn"><div><a th:href="@{/cart}">Giỏ hàng (<span data-cart-badge th:attr="data-authenticated=${#authorization.expression('isAuthenticated()')}">0</span>)</a></div>
+                    <div class="header-ctn">
+                        <div>
+                            <a th:href="@{/cart}">
+                                <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                                <span>Giỏ hàng (<span data-cart-badge
+                                      th:attr="data-authenticated=${#authorization.expression('isAuthenticated()')}">0</span>)</span>
+                            </a>
+                        </div>
                         <div sec:authorize="isAuthenticated()">
                             <a class="store-account"
                                th:href="@{/account}">
@@ -365,8 +577,18 @@
 
                 <li th:each="category : ${categories}"
                     th:classappend="${category.id == categoryId} ? 'active'">
-                    <a th:href="@{/products(categoryId=${category.id})}"
-                       th:text="${category.name}">
+
+                    <a th:href="@{/products(
+                        categoryId=${category.id},
+                        keyword=${keyword},
+                        minPrice=${minPrice},
+                        maxPrice=${maxPrice},
+                        inStock=${inStock},
+                        onSale=${onSale},
+                        sort=${sort},
+                        size=${pageSize}
+                    )}"
+                    th:text="${category.name}">
                     </a>
                 </li>
             </ul>
@@ -392,21 +614,117 @@
 </div>
 
 <!-- SECTION -->
-<div class="section">
+<div id="catalog-list" class="section">
     <div class="container">
+
+        <!-- Tiêu đề sidebar, kết quả và bộ sắp xếp dùng chung một hàng -->
+        <div class="row catalog-toolbar-row">
+            <div class="col-md-3">
+                <h2 id="catalog-category-title" class="catalog-category-title">Danh mục</h2>
+            </div>
+            <div class="col-md-9">
+                <div class="catalog-list-heading">
+                    <p class="store-search-summary"
+                       th:if="${filterError == null}">
+                        Tìm thấy
+                        <strong th:text="${products.totalElements}">0</strong>
+                        sản phẩm.
+
+                        <th:block th:if="${!#strings.isEmpty(keyword)}">
+                            Từ khóa:
+                            <strong th:text="${keyword}"></strong>
+                        </th:block>
+                    </p>
+                <form class="catalog-toolbar"
+                      th:action="@{/products}"
+                      method="get">
+
+                    <input type="hidden" name="keyword"
+                           th:value="${keyword}">
+
+                    <input th:if="${categoryId != null}"
+                           type="hidden" name="categoryId"
+                           th:value="${categoryId}">
+
+                    <input th:if="${minPrice != null}"
+                           type="hidden" name="minPrice"
+                           th:value="${minPrice}">
+
+                    <input th:if="${maxPrice != null}"
+                           type="hidden" name="maxPrice"
+                           th:value="${maxPrice}">
+
+                    <input type="hidden" name="inStock"
+                           th:value="${inStock}">
+
+                    <input type="hidden" name="onSale"
+                           th:value="${onSale}">
+
+                    <label for="catalogSort">
+                        Sắp xếp
+                        <select class="input-select"
+                                id="catalogSort"
+                                name="sort">
+                            <option value="newest"
+                                    th:selected="${sort == 'newest'}">
+                                Mới nhất
+                            </option>
+                            <option value="priceAsc"
+                                    th:selected="${sort == 'priceAsc'}">
+                                Giá tăng dần
+                            </option>
+                            <option value="priceDesc"
+                                    th:selected="${sort == 'priceDesc'}">
+                                Giá giảm dần
+                            </option>
+                            <option value="nameAsc"
+                                    th:selected="${sort == 'nameAsc'}">
+                                Tên A–Z
+                            </option>
+                        </select>
+                    </label>
+
+                    <label for="pageSize">
+                        Sản phẩm mỗi trang
+                        <select class="input-select"
+                                id="pageSize"
+                                name="size">
+                            <option value="12"
+                                    th:selected="${pageSize == 12}">
+                                12
+                            </option>
+                            <option value="24"
+                                    th:selected="${pageSize == 24}">
+                                24
+                            </option>
+                            <option value="48"
+                                    th:selected="${pageSize == 48}">
+                                48
+                            </option>
+                        </select>
+                    </label>
+
+                    <button type="submit">Áp dụng</button>
+                </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar và thông báo kết quả bắt đầu cùng một hàng -->
         <div class="row">
-
-            <!-- ASIDE -->
-            <aside id="aside" class="col-md-3">
+            <aside id="aside" class="col-md-3" aria-labelledby="catalog-category-title">
                 <div class="aside">
-                    <h2 class="aside-title">Danh mục</h2>
-
                     <div class="checkbox-filter">
                         <a class="category-link"
                            th:classappend="${categoryId == null} ? 'selected'"
                            th:href="@{/products(
                                keyword=${keyword},
-                               size=${products.size}
+                               size=${pageSize},
+                               sort=${sort},
+                               minPrice=${minPrice},
+                               maxPrice=${maxPrice},
+                               inStock=${inStock},
+                               onSale=${onSale}
                            )}">
                             Tất cả danh mục
                         </a>
@@ -418,77 +736,108 @@
                            th:href="@{/products(
                                categoryId=${category.id},
                                keyword=${keyword},
-                               size=${products.size}
+                               size=${pageSize},
+                               sort=${sort},
+                               minPrice=${minPrice},
+                               maxPrice=${maxPrice},
+                               inStock=${inStock},
+                               onSale=${onSale}
                            )}"
                            th:text="${category.name}">
                         </a>
                     </div>
+
+                    <form th:action="@{/products}" method="get">
+                        <input type="hidden" name="keyword"
+                               th:value="${keyword}">
+
+                        <input th:if="${categoryId != null}"
+                               type="hidden" name="categoryId"
+                               th:value="${categoryId}">
+
+                        <input type="hidden" name="sort"
+                               th:value="${sort}">
+
+                        <input type="hidden" name="size"
+                               th:value="${pageSize}">
+
+                        <div class="catalog-filter-group">
+                            <h3 class="aside-title">Khoảng giá</h3>
+
+                            <div class="catalog-price-inputs">
+                                <label for="minPrice">
+                                    Từ (₫)
+                                    <input class="input"
+                                           id="minPrice"
+                                           name="minPrice"
+                                           type="number"
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0"
+                                           th:value="${minPrice}">
+                                </label>
+
+                                <label for="maxPrice">
+                                    Đến (₫)
+                                    <input class="input"
+                                           id="maxPrice"
+                                           name="maxPrice"
+                                           type="number"
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="Không giới hạn"
+                                           th:value="${maxPrice}">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="catalog-filter-group">
+                            <h3 class="aside-title">Tình trạng</h3>
+
+                            <label class="catalog-check" for="inStock">
+                                <input id="inStock"
+                                       name="inStock"
+                                       type="checkbox"
+                                       value="true"
+                                       th:checked="${inStock}">
+                                <span>Chỉ hiện sản phẩm còn hàng</span>
+                            </label>
+
+                            <label class="catalog-check" for="onSale">
+                                <input id="onSale"
+                                       name="onSale"
+                                       type="checkbox"
+                                       value="true"
+                                       th:checked="${onSale}">
+                                <span>Chỉ hiện sản phẩm đang giảm giá</span>
+                            </label>
+                        </div>
+
+                        <button class="primary-btn catalog-apply"
+                                type="submit">
+                            Áp dụng bộ lọc
+                        </button>
+
+                        <a class="catalog-reset" th:href="@{/products}">
+                            <i class="fa fa-undo" aria-hidden="true"></i>
+                            Xóa bộ lọc
+                        </a>
+                    </form>
                 </div>
             </aside>
 
-            <!-- STORE -->
             <div id="store" class="col-md-9">
-
-                <!-- Bộ điều khiển danh sách -->
-                <div class="store-filter clearfix">
-                    <div class="store-sort">
-                        <form class="store-size-form"
-                              th:action="@{/products}"
-                              method="get">
-                            <input type="hidden"
-                                   name="keyword"
-                                   th:value="${keyword}">
-
-                            <input th:if="${categoryId != null}"
-                                   type="hidden"
-                                   name="categoryId"
-                                   th:value="${categoryId}">
-
-                            <label for="pageSize">
-                                Sản phẩm mỗi trang:
-                                <select class="input-select"
-                                        id="pageSize"
-                                        name="size">
-                                    <option value="12"
-                                            th:selected="${products.size == 12}">
-                                        12
-                                    </option>
-                                    <option value="24"
-                                            th:selected="${products.size == 24}">
-                                        24
-                                    </option>
-                                    <option value="48"
-                                            th:selected="${products.size == 48}">
-                                        48
-                                    </option>
-                                </select>
-                            </label>
-
-                            <button type="submit">Áp dụng</button>
-                        </form>
-
-                        <a class="store-clear"
-                           th:href="@{/products}">
-                            Xóa bộ lọc
-                        </a>
-                    </div>
+                <div class="alert alert-danger catalog-filter-error"
+                     role="alert"
+                     th:if="${filterError != null}"
+                     th:text="${filterError}">
                 </div>
-
-                <p class="store-search-summary">
-                    Tìm thấy
-                    <strong th:text="${products.totalElements}">0</strong>
-                    sản phẩm.
-                    <th:block th:if="${!#strings.isEmpty(keyword)}">
-                        Từ khóa:
-                        <strong th:text="${keyword}"></strong>
-                    </th:block>
-                </p>
 
                 <div class="alert alert-info"
                      role="status"
-                     th:if="${products.empty}">
+                     th:if="${products.empty and filterError == null}">
                     Không tìm thấy sản phẩm phù hợp.
-                    Vui lòng thử từ khóa hoặc danh mục khác.
+                    Hãy thử điều chỉnh khoảng giá hoặc bộ lọc.
                 </div>
 
                 <!-- Lưới sản phẩm: giữ cấu trúc Electro -->
@@ -602,14 +951,18 @@
                         <ul class="store-pagination">
                             <li th:if="${products.hasPrevious()}">
                                 <a th:href="@{/products(
-                                       page=${products.number - 1},
-                                       size=${products.size},
-                                       keyword=${keyword},
-                                       categoryId=${categoryId}
-                                   )}"
-                                   aria-label="Trang trước">
-                                    <i class="fa fa-angle-left"
-                                       aria-hidden="true"></i>
+                                    page=${products.number - 1},
+                                    size=${products.size},
+                                    keyword=${keyword},
+                                    categoryId=${categoryId},
+                                    minPrice=${minPrice},
+                                    maxPrice=${maxPrice},
+                                    inStock=${inStock},
+                                    onSale=${onSale},
+                                    sort=${sort}
+                                )}"
+                                aria-label="Trang trước">
+                                    <i class="fa fa-angle-left" aria-hidden="true"></i>
                                 </a>
                             </li>
 
@@ -620,14 +973,18 @@
 
                             <li th:if="${products.hasNext()}">
                                 <a th:href="@{/products(
-                                       page=${products.number + 1},
-                                       size=${products.size},
-                                       keyword=${keyword},
-                                       categoryId=${categoryId}
-                                   )}"
-                                   aria-label="Trang sau">
-                                    <i class="fa fa-angle-right"
-                                       aria-hidden="true"></i>
+                                    page=${products.number + 1},
+                                    size=${products.size},
+                                    keyword=${keyword},
+                                    categoryId=${categoryId},
+                                    minPrice=${minPrice},
+                                    maxPrice=${maxPrice},
+                                    inStock=${inStock},
+                                    onSale=${onSale},
+                                    sort=${sort}
+                                )}"
+                                aria-label="Trang sau">
+                                    <i class="fa fa-angle-right" aria-hidden="true"></i>
                                 </a>
                             </li>
                         </ul>
@@ -642,7 +999,7 @@
 <footer id="footer">
     <div class="section">
         <div class="container">
-            <div class="row">
+            <div class="row store-footer-columns">
                 <div class="col-md-4 col-sm-6">
                     <div class="footer">
                         <h3 class="footer-title">Về ShopTech</h3>
@@ -704,14 +1061,7 @@
                 <div class="col-md-12 text-center">
                     <span class="copyright">
                         ShopTech |
-                        This template is made with
-                        <i class="fa fa-heart-o" aria-hidden="true"></i>
-                        by
-                        <a href="https://colorlib.com"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            Colorlib
-                        </a>
+                        By Group 20
                     </span>
                 </div>
             </div>
