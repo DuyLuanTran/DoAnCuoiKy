@@ -1,0 +1,186 @@
+.shoptech-chat {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 10000;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.shoptech-chat__launcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 54px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 28px;
+    background: #d10024;
+    box-shadow: 0 6px 20px rgba(21, 22, 29, .24);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.shoptech-chat__launcher:hover,
+.shoptech-chat__launcher:focus-visible {
+    background: #a9001d;
+    color: #fff;
+}
+
+.shoptech-chat__launcher i {
+    font-size: 18px;
+}
+
+.shoptech-chat__panel {
+    position: absolute;
+    right: 0;
+    bottom: 68px;
+    display: flex;
+    flex-direction: column;
+    width: min(360px, calc(100vw - 32px));
+    height: min(480px, calc(100vh - 120px));
+    min-height: 300px;
+    overflow: hidden;
+    border: 1px solid #e4e7ed;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 10px 36px rgba(21, 22, 29, .2);
+}
+
+.shoptech-chat__panel[hidden] {
+    display: none;
+}
+
+.shoptech-chat__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 66px;
+    padding: 12px 16px;
+    background: #15161d;
+    color: #fff;
+}
+
+.shoptech-chat__header strong,
+.shoptech-chat__header span {
+    display: block;
+}
+
+.shoptech-chat__header strong {
+    font-size: 14px;
+}
+
+.shoptech-chat__header span {
+    margin-top: 4px;
+    color: #c7c8ce;
+    font-size: 11px;
+}
+
+.shoptech-chat__close {
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.shoptech-chat__messages {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    padding: 16px 12px;
+    background: #f7f8fa;
+}
+
+.shoptech-chat__bubble {
+    max-width: 85%;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.shoptech-chat__bubble--bot {
+    align-self: flex-start;
+    border: 1px solid #e4e7ed;
+    background: #fff;
+    color: #333;
+}
+
+.shoptech-chat__bubble--user {
+    align-self: flex-end;
+    background: #d10024;
+    color: #fff;
+}
+
+.shoptech-chat__bubble--error {
+    border-color: #f1b7c1;
+    color: #a9001d;
+}
+
+.shoptech-chat__form {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid #e4e7ed;
+    background: #fff;
+}
+
+.shoptech-chat__form input {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid #e4e7ed;
+    border-radius: 4px;
+    color: #333;
+    font-size: 12px;
+}
+
+.shoptech-chat__form input:focus {
+    border-color: #d10024;
+    outline: 0;
+}
+
+.shoptech-chat__form button {
+    width: 42px;
+    height: 40px;
+    border: 0;
+    border-radius: 4px;
+    background: #d10024;
+    color: #fff;
+}
+
+.shoptech-chat__form button:disabled {
+    cursor: wait;
+    opacity: .6;
+}
+
+.shoptech-chat__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+@media (max-width: 480px) {
+    .shoptech-chat {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .shoptech-chat__panel {
+        height: min(480px, calc(100vh - 104px));
+    }
+}
