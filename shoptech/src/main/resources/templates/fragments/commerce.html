@@ -4,13 +4,49 @@
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="commerce-user" th:content="${#authentication.name}">
+    <link rel="stylesheet" th:href="@{/user/css/chatbot.css}">
     <style>#checkout-link[hidden], #commerce-message[hidden] { display: none !important; }</style>
 </th:block>
 <th:block th:fragment="scripts">
     <span hidden data-order-notifications th:attr="data-order-notifications=${#authorization.expression('isAuthenticated()')}"></span>
     <div id="commerce-message" role="status" aria-live="polite" style="position:fixed;right:16px;bottom:16px;z-index:9999;max-width:360px" hidden></div>
+    <section class="shoptech-chat" aria-label="Hỗ trợ khách hàng">
+        <div class="shoptech-chat__panel" id="shoptech-chat-panel" hidden>
+            <header class="shoptech-chat__header">
+                <div>
+                    <strong>ShopTech hỗ trợ</strong>
+                    <span>Tư vấn sản phẩm cùng AI</span>
+                </div>
+                <button class="shoptech-chat__close" type="button" aria-label="Đóng chat">×</button>
+            </header>
+            <div class="shoptech-chat__messages" id="shoptech-chat-messages"
+                 role="log" aria-live="polite" aria-relevant="additions">
+                <p class="shoptech-chat__bubble shoptech-chat__bubble--bot">
+                    Xin chào! Mình có thể giúp bạn tìm hiểu sản phẩm và thông tin đang có trên ShopTech.
+                </p>
+            </div>
+            <form class="shoptech-chat__form" id="shoptech-chat-form">
+                <label class="shoptech-chat__sr-only" for="shoptech-chat-input">Tin nhắn của bạn</label>
+                <input id="shoptech-chat-input" name="message" type="text" maxlength="1000"
+                       placeholder="Nhập câu hỏi..." autocomplete="off" required>
+                <button type="submit" aria-label="Gửi tin nhắn">
+                    <i class="fa fa-paper-plane" aria-hidden="true"></i>
+                </button>
+            </form>
+        </div>
+        <button class="shoptech-chat__launcher" type="button"
+                aria-controls="shoptech-chat-panel" aria-expanded="false">
+            <i class="fa fa-comments" aria-hidden="true"></i>
+            <span>Chat hỗ trợ</span>
+        </button>
+    </section>
     <script th:src="@{/user/js/commerce.js}" defer></script>
     <script th:src="@{/user/js/order-notifications.js}" defer></script>
+    <script th:src="@{/user/js/chatbot.js}" defer></script>
 </th:block>
 <nav th:fragment="links" aria-label="Mua hàng"><a th:href="@{/products}">Sản phẩm</a> · <a th:href="@{/cart}">Giỏ hàng (<span data-cart-badge data-authenticated="true">0</span>)</a> · <a th:href="@{/orders}">Lịch sử đơn hàng</a></nav>
+<th:block th:fragment="storeHeader"
+          th:with="keyword='',categoryId=${null},minPrice=${null},maxPrice=${null},inStock=false,onSale=false,sort='newest',pageSize=12">
+    <header th:replace="~{user/store :: header}"></header>
+</th:block>
 </body></html>

@@ -1,15 +1,86 @@
 <!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chi tiết đơn hàng | ShopTech</title>
-<th:block th:replace="~{fragments/commerce :: head}"/><link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"></head>
-<body><header id="header"><div class="container"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div></header><main class="section container">
-<nav th:replace="~{fragments/commerce :: links}"></nav><a th:href="@{/orders}">Lịch sử đơn hàng</a>
-<section th:fragment="detail"><h1 th:text="${order.code}"></h1>
-<p th:text="'Khách hàng: ' + ${order.customer}"></p>
-<p th:text="'Ngày đặt: ' + ${#temporals.format(order.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')),'dd/MM/yyyy HH:mm')}"></p>
-<p>Trạng thái: <strong id="order-status" th:attr="data-order-id=${order.id}" th:text="${order.status}"></strong></p>
-<p th:text="${order.recipientName} + ' · ' + ${order.recipientPhone}"></p><p th:text="${order.shippingAddress}"></p><p th:text="${order.note}"></p>
-<div class="table-responsive"><table class="table"><thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead><tbody>
-<tr th:each="item : ${order.items}"><td><img th:if="${item.image != null}" th:src="${item.image}" alt="" width="60" loading="lazy"><span th:text="${item.name}"></span></td><td th:text="${#numbers.formatDecimal(item.price,1,'POINT',0,'COMMA')}+' ₫'"></td><td th:text="${item.quantity}"></td><td th:text="${#numbers.formatDecimal(item.subtotal,1,'POINT',0,'COMMA')}+' ₫'"></td></tr></tbody></table></div>
-<p th:text="'Tiền hàng: ' + ${#numbers.formatDecimal(order.subtotal,1,'POINT',0,'COMMA')}+' ₫'"></p><p th:text="'Phí giao hàng: ' + ${#numbers.formatDecimal(order.shippingFee,1,'POINT',0,'COMMA')}+' ₫'"></p>
-<h3 th:text="'Tổng tiền: ' + ${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')}+' ₫'"></h3><p>Thanh toán: <span th:text="${order.paymentMethod}"></span> · <span th:text="${order.paymentStatus}"></span></p>
-</section></main><th:block th:replace="~{fragments/commerce :: scripts}"/></body></html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chi tiết đơn hàng | ShopTech</title>
+    <th:block th:replace="~{fragments/commerce :: head}"></th:block>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/style.css}">
+    <style th:replace="~{user/store :: style}"></style>
+    <link rel="stylesheet" th:href="@{/user/css/order-detail.css}">
+</head>
+<body class="order-page">
+<th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
+<nav id="navigation" aria-label="Mua hàng">
+    <div class="container">
+        <ul class="main-nav nav navbar-nav order-navigation">
+            <li><a th:href="@{/products}">Sản phẩm</a></li>
+            <li><a th:href="@{/cart}">Giỏ hàng</a></li>
+            <li class="active"><a th:href="@{/orders}">Lịch sử đơn hàng</a></li>
+        </ul>
+    </div>
+</nav>
+<main class="section container order-main">
+    <a class="order-back" th:href="@{/orders}"><i class="fa fa-arrow-left" aria-hidden="true"></i> Lịch sử đơn hàng</a>
+    <section th:fragment="detail" class="order-detail-content">
+        <div class="order-detail-heading">
+            <div>
+                <h1>Chi tiết đơn hàng</h1>
+                <p class="order-code">Mã đơn: <strong th:text="${order.code}"></strong></p>
+                <div class="order-meta">
+                    <span th:text="'Khách hàng: ' + ${order.customer}"></span>
+                    <span th:text="'Ngày đặt: ' + ${#temporals.format(order.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')), 'dd/MM/yyyy HH:mm')}"></span>
+                </div>
+            </div>
+            <p class="order-status-line">Trạng thái:
+                <strong id="order-status" class="order-detail-status" th:attr="data-order-id=${order.id}" th:text="${order.status}"></strong>
+            </p>
+        </div>
+        <div class="order-detail-layout">
+            <div class="order-detail-main">
+                <section class="order-shipping" aria-label="Thông tin giao hàng">
+                    <h2>Thông tin giao hàng</h2>
+                    <dl class="order-recipient">
+                        <div><dt>Người nhận:</dt><dd th:text="${order.recipientName}"></dd></div>
+                        <div><dt>Điện thoại:</dt><dd th:text="${order.recipientPhone}"></dd></div>
+                        <div><dt>Địa chỉ:</dt><dd th:text="${order.shippingAddress}"></dd></div>
+                        <div th:if="${!#strings.isEmpty(order.note)}"><dt>Ghi chú:</dt><dd th:text="${order.note}"></dd></div>
+                    </dl>
+                </section>
+                <section class="order-products" aria-label="Sản phẩm đã đặt">
+                    <h2>Sản phẩm đã đặt</h2>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead><tr><th scope="col">Sản phẩm</th><th scope="col">Đơn giá</th><th scope="col">Số lượng</th><th scope="col">Thành tiền</th></tr></thead>
+                            <tbody>
+                                <tr th:each="item : ${order.items}">
+                                    <td><div class="order-product"><img th:if="${item.image != null}" th:src="${item.image}" alt="" width="65" height="70" loading="lazy"><span th:text="${item.name}"></span></div></td>
+                                    <td class="order-money" th:text="${#numbers.formatDecimal(item.price,1,'POINT',0,'COMMA')} + ' ₫'"></td>
+                                    <td th:text="${item.quantity}"></td>
+                                    <td class="order-money order-line-total" th:text="${#numbers.formatDecimal(item.subtotal,1,'POINT',0,'COMMA')} + ' ₫'"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            <aside class="order-detail-summary" aria-label="Tóm tắt đơn hàng">
+                <h2>Tóm tắt đơn hàng</h2>
+                <div class="order-cost-line"><span>Tiền hàng</span><strong th:text="${#numbers.formatDecimal(order.subtotal,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
+                <div class="order-cost-line"><span>Phí giao hàng</span><strong th:text="${#numbers.formatDecimal(order.shippingFee,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
+                <div class="order-total-line"><span>Tổng tiền</span><strong th:text="${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
+                <div class="order-payment">
+                    <p><span>Thanh toán:</span> <strong th:text="${order.paymentMethod}"></strong></p>
+                    <p><span>Trạng thái thanh toán:</span> <strong th:text="${order.paymentStatus}"></strong></p>
+                </div>
+            </aside>
+        </div>
+    </section>
+</main>
+<footer id="footer" class="order-footer"><div id="bottom-footer" class="section"><div class="container text-center"><span class="copyright">ShopTech | By Group 20</span></div></div></footer>
+<th:block th:replace="~{fragments/commerce :: scripts}"></th:block>
+</body>
+</html>

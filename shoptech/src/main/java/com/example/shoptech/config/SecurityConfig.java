@@ -110,6 +110,17 @@ public class SecurityConfig {
                                     }
                                 }
                         )
+                        .accessDeniedHandler((request, response, failure) -> {
+                            if (request.getRequestURI().startsWith(request.getContextPath() + "/api/")) {
+                                response.setStatus(403);
+                                response.setContentType("application/problem+json;charset=UTF-8");
+                                response.getWriter().write(
+                                        "{\"status\":403,\"detail\":\"Yêu cầu API bị từ chối. Hãy tải lại trang để làm mới token bảo mật rồi thử lại.\"}"
+                                );
+                            } else {
+                                response.sendError(403);
+                            }
+                        })
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
