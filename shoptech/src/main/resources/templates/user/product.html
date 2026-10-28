@@ -109,7 +109,7 @@
   <body>
     <!-- Dùng nguyên header và menu của trang danh sách -->
     <header th:replace="~{user/store :: header}"></header>
-    <nav th:replace="~{user/store :: #navigation}"></nav>
+    <nav th:replace="~{fragments/store-navigation :: navigation('products')}"></nav>
 
     <!-- BREADCRUMB -->
     <div id="breadcrumb" class="section">
@@ -197,6 +197,8 @@
                 Mã sản phẩm:
                 <strong th:text="${product.sku}"></strong>
               </p>
+
+              <p class="text-muted" style="overflow-wrap:anywhere">Cửa hàng: <a th:href="@{/shops/{slug}(slug=${product.shop.slug})}"><i class="fa fa-shopping-bag" aria-hidden="true"></i> <strong th:text="${product.shop.name}"></strong> <span class="small">Xem shop <i class="fa fa-angle-right" aria-hidden="true"></i></span></a></p>
 
               <div>
                 <h2 class="product-price">
@@ -361,6 +363,7 @@
       </div>
     </div>
 
+    <div class="section"><div class="container"><div th:replace="~{fragments/product-reviews :: reviews}"></div></div></div>
     <!-- Dùng nguyên footer của trang danh sách -->
     <footer th:replace="~{user/store :: #footer}"></footer>
 

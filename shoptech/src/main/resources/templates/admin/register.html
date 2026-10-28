@@ -3,55 +3,524 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Đăng ký | ShopTech</title>
+    <title>Đăng ký tài khoản | ShopTech</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Montserrat:wght@500;700&display=swap">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/admin/css/sb-admin-2.min.css}">
     <link rel="stylesheet" th:href="@{/admin/css/user-management.css}">
+    <style>
+        :root {
+            --brand-primary: #d10024;
+            --brand-primary-hover: #b8001f;
+            --brand-blue: #2864dc;
+            --brand-dark: #15161d;
+            --surface: #ffffff;
+            --line-border: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+        body.auth-page {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 32px 16px;
+            background: radial-gradient(circle at 10% 20%, rgba(209, 0, 36, 0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(40, 100, 220, 0.06) 0%, transparent 40%),
+                        #f4f7fb;
+            font-family: 'Nunito', sans-serif;
+            color: var(--text-main);
+        }
+        .auth-nav-top {
+            width: min(720px, 100%);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .back-home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .back-home-link:hover {
+            color: var(--brand-primary);
+            text-decoration: none;
+            transform: translateX(-3px);
+        }
+        .auth-card-wide {
+            width: min(720px, 100%);
+            padding: 40px;
+            background: var(--surface);
+            border: 1px solid var(--line-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+            position: relative;
+        }
+        .auth-brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .brand-logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--brand-dark);
+            letter-spacing: 0.08em;
+            text-decoration: none;
+        }
+        .brand-logo-text span {
+            color: var(--brand-primary);
+        }
+        .badge-pill {
+            background: rgba(209, 0, 36, 0.1);
+            color: var(--brand-primary);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.06em;
+        }
+        .auth-card h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            color: var(--text-main);
+        }
+        .auth-card .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0 0 24px 0;
+            line-height: 1.5;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+        .field {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .field-full {
+            grid-column: 1 / -1;
+        }
+        .field label {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+        .required-star {
+            color: var(--brand-primary);
+        }
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 15px;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+        .input-with-icon input {
+            width: 100%;
+            height: 44px;
+            padding: 10px 14px 10px 42px;
+            border: 1.5px solid var(--line-border);
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-main);
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .password-wrapper input {
+            padding-right: 42px;
+        }
+        .input-with-icon input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 4px rgba(209, 0, 36, 0.12);
+        }
+        .input-with-icon input:focus + .input-icon,
+        .input-with-icon input:focus ~ .input-icon {
+            color: var(--brand-primary);
+        }
+        .btn-toggle-pw {
+            position: absolute;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 6px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        .btn-toggle-pw:hover {
+            color: var(--text-main);
+        }
+        .field-error {
+            min-height: 18px;
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: block;
+        }
+        .terms-note {
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .terms-note i {
+            color: #10b981;
+            margin-top: 2px;
+        }
+        .btn-register-submit {
+            height: 48px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #d10024, #b8001f);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 18px rgba(209, 0, 36, 0.28);
+            transition: all 0.25s ease;
+        }
+        .btn-register-submit:hover {
+            background: linear-gradient(135deg, #ba0020, #960019);
+            box-shadow: 0 8px 22px rgba(209, 0, 36, 0.38);
+            transform: translateY(-1px);
+        }
+        .btn-register-submit:active {
+            transform: translateY(0);
+        }
+        .notice.error {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 9px;
+            color: #991b1b;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .notice.error i {
+            font-size: 16px;
+            margin-top: 2px;
+        }
+        .notice.error p {
+            margin: 0;
+        }
+        .notice.info {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 9px;
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .notice.info i {
+            font-size: 16px;
+            margin-top: 2px;
+        }
+        .auth-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .auth-footer a {
+            color: var(--brand-primary);
+            font-weight: 800;
+            text-decoration: none;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .seller-callout {
+            margin-top: 24px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .seller-callout-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--brand-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            flex-shrink: 0;
+        }
+        .seller-callout-text {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .seller-callout-text span {
+            display: block;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .seller-callout-text a {
+            color: var(--brand-blue);
+            font-weight: 800;
+            text-decoration: none;
+        }
+        .seller-callout-text a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 680px) {
+            .auth-card-wide {
+                padding: 26px 18px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .field-full {
+                grid-column: 1;
+            }
+        }
+    </style>
 </head>
 <body class="auth-page">
-<main class="auth-card auth-card-wide">
-    <div class="auth-brand">SHOPTECH</div>
-    <h1>Tạo tài khoản</h1>
-    <p class="muted">Điền thông tin để đăng ký tài khoản khách hàng.</p>
-
-    <div class="notice error" th:if="${#fields.hasGlobalErrors()}">
-        <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+    <div class="auth-nav-top">
+        <a th:href="@{/}" class="back-home-link">
+            <i class="fa fa-arrow-left"></i> Quay lại trang chủ
+        </a>
+        <a th:href="@{/login}" class="back-home-link">
+            Đăng nhập <i class="fa fa-sign-in"></i>
+        </a>
     </div>
-    <form th:action="@{/register}" th:object="${registerForm}" method="post">
-        <div class="form-grid">
-            <div class="field">
-                <label for="fullName">Họ và tên</label>
-                <input id="fullName" th:field="*{fullName}" autocomplete="name" required>
-                <small class="field-error" th:errors="*{fullName}"></small>
-            </div>
-            <div class="field">
-                <label for="username">Tên đăng nhập</label>
-                <input id="username" th:field="*{username}" autocomplete="username" minlength="3" maxlength="50" required>
-                <small class="field-error" th:errors="*{username}"></small>
-            </div>
-            <div class="field">
-                <label for="email">Email</label>
-                <input id="email" th:field="*{email}" type="email" autocomplete="email" maxlength="100" required>
-                <small class="field-error" th:errors="*{email}"></small>
-            </div>
-            <div class="field">
-                <label for="phoneNumber">Số điện thoại</label>
-                <input id="phoneNumber" th:field="*{phoneNumber}" type="tel" autocomplete="tel">
-                <small class="field-error" th:errors="*{phoneNumber}"></small>
-            </div>
-            <div class="field field-full">
-                <label for="address">Địa chỉ</label>
-                <input id="address" th:field="*{address}" autocomplete="street-address" maxlength="255">
-                <small class="field-error" th:errors="*{address}"></small>
-            </div>
-            <div class="field field-full">
-                <label for="password">Mật khẩu (ít nhất 6 ký tự)</label>
-                <input id="password" th:field="*{password}" type="password" autocomplete="new-password" minlength="6" required>
-                <small class="field-error" th:errors="*{password}"></small>
+
+    <main class="auth-card auth-card-wide">
+        <div class="auth-brand-badge">
+            <a th:href="@{/}" class="brand-logo-text">SHOP<span>TECH</span></a>
+            <span class="badge-pill">Thành viên mới</span>
+        </div>
+
+        <h1>Tạo tài khoản</h1>
+        <p class="subtitle">Đăng ký để nhận ưu đãi công nghệ, lưu giỏ hàng và theo dõi đơn hàng tiện lợi.</p>
+
+        <!-- Thông báo người bán đăng ký tài khoản -->
+        <div class="notice info" th:if="${(param.redirect != null and #strings.contains(#strings.toString(param.redirect), 'shop-registration')) or (redirect != null and #strings.contains(redirect, 'shop-registration'))}">
+            <i class="fa fa-info-circle"></i>
+            <div>
+                <strong>Đăng ký tài khoản người bán:</strong> Hãy tạo tài khoản ShopTech trước để mở gian hàng kinh doanh. Sau khi hoàn tất đăng ký tài khoản, hệ thống sẽ tiếp tục đưa bạn đến bước nộp hồ sơ mở shop. Đã có tài khoản? <a th:href="@{/login(redirect='/shop-registration')}" style="color: #1e40af; font-weight: 800; text-decoration: underline;">Đăng nhập ngay</a>.
             </div>
         </div>
-        <button class="button primary full-width" type="submit">Đăng ký</button>
-    </form>
-    <p class="auth-footer">Đã có tài khoản? <a th:href="@{/login}">Đăng nhập</a></p>
-</main>
+
+        <!-- Form đăng ký liên kết với registerForm -->
+        <form th:action="@{/register}" th:object="${registerForm}" method="post" id="registerForm">
+            <input type="hidden" name="redirect" th:value="${redirect != null ? redirect : (param.redirect != null ? param.redirect : '')}">
+
+            <!-- Thông báo lỗi toàn cục (đặt bên trong form để Thymeleaf xử lý BindingResult an toàn) -->
+            <div class="notice error" th:if="${#fields.hasGlobalErrors()}">
+                <i class="fa fa-exclamation-triangle"></i>
+                <div>
+                    <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <!-- Họ và tên -->
+                <div class="field">
+                    <label for="fullName">Họ và tên <span class="required-star">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fa fa-user input-icon"></i>
+                        <input id="fullName" th:field="*{fullName}" autocomplete="name" placeholder="Nguyễn Văn A" required maxlength="100">
+                    </div>
+                    <small class="field-error" th:errors="*{fullName}"></small>
+                </div>
+
+                <!-- Tên đăng nhập -->
+                <div class="field">
+                    <label for="username">Tên đăng nhập <span class="required-star">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fa fa-id-badge input-icon"></i>
+                        <input id="username" th:field="*{username}" autocomplete="username" minlength="3" maxlength="50" placeholder="nguyenvana (3-50 ký tự)" required>
+                    </div>
+                    <small class="field-error" th:errors="*{username}"></small>
+                </div>
+
+                <!-- Email -->
+                <div class="field">
+                    <label for="email">Địa chỉ Email <span class="required-star">*</span></label>
+                    <div class="input-with-icon">
+                        <i class="fa fa-envelope input-icon"></i>
+                        <input id="email" th:field="*{email}" type="email" autocomplete="email" maxlength="100" placeholder="name@example.com" required>
+                    </div>
+                    <small class="field-error" th:errors="*{email}"></small>
+                </div>
+
+                <!-- Số điện thoại -->
+                <div class="field">
+                    <label for="phoneNumber">Số điện thoại</label>
+                    <div class="input-with-icon">
+                        <i class="fa fa-phone input-icon"></i>
+                        <input id="phoneNumber" th:field="*{phoneNumber}" type="tel" autocomplete="tel" placeholder="0912 345 678" maxlength="15">
+                    </div>
+                    <small class="field-error" th:errors="*{phoneNumber}"></small>
+                </div>
+
+                <!-- Địa chỉ -->
+                <div class="field field-full">
+                    <label for="address">Địa chỉ nhận hàng</label>
+                    <div class="input-with-icon">
+                        <i class="fa fa-map-marker input-icon"></i>
+                        <input id="address" th:field="*{address}" autocomplete="street-address" maxlength="255" placeholder="Số nhà, tên đường, phường/xã, quận/huyện...">
+                    </div>
+                    <small class="field-error" th:errors="*{address}"></small>
+                </div>
+
+                <!-- Mật khẩu -->
+                <div class="field">
+                    <label for="password">Mật khẩu <span class="required-star">*</span></label>
+                    <div class="input-with-icon password-wrapper">
+                        <i class="fa fa-lock input-icon"></i>
+                        <input id="password" th:field="*{password}" type="password" autocomplete="new-password" minlength="6" placeholder="Tối thiểu 6 ký tự" required>
+                        <button type="button" class="btn-toggle-pw" onclick="togglePasswordVisibility('password', this)" tabindex="-1" title="Hiện/ẩn mật khẩu">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="field-error" th:errors="*{password}"></small>
+                </div>
+
+                <!-- Xác nhận mật khẩu -->
+                <div class="field">
+                    <label for="confirmPassword">Xác nhận mật khẩu <span class="required-star">*</span></label>
+                    <div class="input-with-icon password-wrapper">
+                        <i class="fa fa-shield input-icon"></i>
+                        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Nhập lại mật khẩu" required>
+                        <button type="button" class="btn-toggle-pw" onclick="togglePasswordVisibility('confirmPassword', this)" tabindex="-1" title="Hiện/ẩn mật khẩu">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="field-error" id="confirmPasswordError"></small>
+                </div>
+            </div>
+
+            <div class="terms-note">
+                <i class="fa fa-check-circle"></i>
+                <span>Bằng việc bấm <strong>Đăng ký tài khoản</strong>, bạn đồng ý với Điều khoản dịch vụ và Chính sách quyền riêng tư của ShopTech.</span>
+            </div>
+
+            <button class="button primary full-width btn-register-submit" type="submit" id="submitBtn">
+                <i class="fa fa-user-plus"></i> Đăng ký tài khoản
+            </button>
+        </form>
+
+        <p class="auth-footer">
+            Đã có tài khoản? 
+            <a th:if="${(redirect != null and !#strings.isEmpty(redirect)) or (param.redirect != null and !#strings.isEmpty(param.redirect))}" 
+               th:href="@{/login(redirect=${redirect != null ? redirect : param.redirect})}">Đăng nhập ngay</a>
+            <a th:unless="${(redirect != null and !#strings.isEmpty(redirect)) or (param.redirect != null and !#strings.isEmpty(param.redirect))}" 
+               th:href="@{/login}">Đăng nhập ngay</a>
+        </p>
+
+        <!-- Banner đăng ký gian hàng người bán -->
+        <div class="seller-callout">
+            <div class="seller-callout-icon">
+                <i class="fa fa-shopping-bag"></i>
+            </div>
+            <div class="seller-callout-text">
+                <span>Bạn muốn kinh doanh cùng ShopTech?</span>
+                <a th:href="@{/register(redirect='/shop-registration')}">Đăng ký tài khoản và mở gian hàng ngay &rarr;</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa fa-eye';
+            }
+        }
+
+        const form = document.getElementById('registerForm');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const confirmError = document.getElementById('confirmPasswordError');
+
+        function checkPasswordMatch() {
+            if (!confirmPasswordInput.value) {
+                confirmError.textContent = '';
+                return true;
+            }
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                confirmError.textContent = 'Mật khẩu xác nhận không khớp.';
+                return false;
+            } else {
+                confirmError.textContent = '';
+                return true;
+            }
+        }
+
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+        passwordInput.addEventListener('input', () => {
+            if (confirmPasswordInput.value) checkPasswordMatch();
+        });
+
+        form.addEventListener('submit', function(e) {
+            if (!checkPasswordMatch()) {
+                e.preventDefault();
+                confirmPasswordInput.focus();
+            }
+        });
+    </script>
 </body>
 </html>

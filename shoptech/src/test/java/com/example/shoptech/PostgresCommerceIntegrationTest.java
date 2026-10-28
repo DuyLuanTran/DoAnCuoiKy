@@ -43,6 +43,17 @@ class PostgresCommerceIntegrationTest extends CommerceIntegrationTest {
             // A fresh private schema needs neither; never execute those statements.
             source=source.replaceAll("(?im)^\\s*(?:DROP (?:TABLE|VIEW)|CREATE EXTENSION)[^;]*;","");
             statement.execute(source);
+            // Add the marketplace tables in this private, empty test schema only.
+            // Never execute the sandbox migration's bootstrap/backfill or database guard here.
+            String foundation=new ClassPathResource("db/migrations/V001__marketplace_foundation.sql").getContentAsString(StandardCharsets.UTF_8);
+            statement.execute(foundation.substring(foundation.indexOf("CREATE TABLE shops ("),foundation.indexOf("-- No business commission")));
+            String ownership=new ClassPathResource("db/migrations/V002__shop_owned_products.sql").getContentAsString(StandardCharsets.UTF_8);
+            statement.execute(ownership.substring(ownership.indexOf("ALTER TABLE products ADD COLUMN shop_id"),ownership.indexOf("INSERT INTO marketplace_migrations")));
+            String splits=new ClassPathResource("db/migrations/V003__shop_orders.sql").getContentAsString(StandardCharsets.UTF_8);
+            statement.execute(splits.substring(splits.indexOf("CREATE TABLE shop_orders ("),splits.indexOf("-- All historical")));
+            statement.execute("ALTER TABLE order_details ALTER COLUMN shop_order_id SET NOT NULL");
+            String community=new ClassPathResource("db/migrations/V004__reviews_and_favorites.sql").getContentAsString(StandardCharsets.UTF_8);
+            statement.execute(community.substring(community.indexOf("-- DDL START"),community.indexOf("-- DDL END")));
         }
         properties.add("spring.datasource.url",()->url);
         properties.add("spring.datasource.driver-class-name",()->"org.postgresql.Driver");

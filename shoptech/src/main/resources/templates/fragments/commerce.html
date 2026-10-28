@@ -1,15 +1,17 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org"><body>
 <th:block th:fragment="head">
+    <link rel="stylesheet" th:href="@{/user/css/community.css}">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="commerce-user" th:content="${#authentication.name}">
     <link rel="stylesheet" th:href="@{/user/css/chatbot.css}">
+    <link rel="stylesheet" th:href="@{/user/css/notifications.css}">
     <style>#checkout-link[hidden], #commerce-message[hidden] { display: none !important; }</style>
 </th:block>
 <th:block th:fragment="scripts">
     <span hidden data-order-notifications th:attr="data-order-notifications=${#authorization.expression('isAuthenticated()')}"></span>
-    <div id="commerce-message" role="status" aria-live="polite" style="position:fixed;right:16px;bottom:16px;z-index:9999;max-width:360px" hidden></div>
+    <div id="commerce-message" role="status" aria-live="polite" style="position:fixed;right:24px;bottom:96px;z-index:10001;max-width:360px" hidden></div>
     <section class="shoptech-chat" aria-label="Hỗ trợ khách hàng">
         <div class="shoptech-chat__panel" id="shoptech-chat-panel" hidden>
             <header class="shoptech-chat__header">
@@ -41,7 +43,9 @@
         </button>
     </section>
     <script th:src="@{/user/js/commerce.js}" defer></script>
+    <script th:src="@{/user/js/community.js}" defer></script>
     <script th:src="@{/user/js/order-notifications.js}" defer></script>
+    <script th:src="@{/user/js/notifications.js}" defer></script>
     <script th:src="@{/user/js/chatbot.js}" defer></script>
 </th:block>
 <nav th:fragment="links" aria-label="Mua hàng"><a th:href="@{/products}">Sản phẩm</a> · <a th:href="@{/cart}">Giỏ hàng (<span data-cart-badge data-authenticated="true">0</span>)</a> · <a th:href="@{/orders}">Lịch sử đơn hàng</a></nav>

@@ -184,3 +184,22 @@
         height: min(480px, calc(100vh - 104px));
     }
 }
+
+.shoptech-chat__bubble .chat-link {
+    color: #d10024;
+    text-decoration: underline;
+    font-weight: 700;
+    word-break: break-all;
+    transition: color 0.15s ease;
+}
+
+.shoptech-chat__bubble .chat-link:hover {
+    color: #a9001d;
+    text-decoration: none;
+}
+
+.shoptech-chat__bubble strong {
+    font-weight: 700;
+    color: #111827;
+}
+

@@ -11,6 +11,18 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    @Override @EntityGraph(attributePaths={"category","shop"})
+    Optional<Product> findById(Long id);
+
+    @EntityGraph(attributePaths={"category","shop"})
+    Optional<Product> findByIdAndShopId(Long id,Long shopId);
+
+    boolean existsByShopIdAndSku(Long shopId,String sku);
+    boolean existsByShopIdAndSkuAndIdNot(Long shopId,String sku,Long id);
+
+    @EntityGraph(attributePaths={"category","shop"})
+    @Query("select p from Product p where p.isDeleted=:trash and (:shopId is null or p.shop.id=:shopId) and (:categoryId is null or p.category.id=:categoryId) and (lower(p.name) like lower(concat('%',:keyword,'%')) or lower(p.sku) like lower(concat('%',:keyword,'%')))")
+    Page<Product> searchMarketplace(@Param("keyword") String keyword,@Param("categoryId") Long categoryId,@Param("shopId") Long shopId,@Param("trash") boolean trash,Pageable pageable);
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :id")
     Optional<Product> lockById(@Param("id") Long id);
@@ -36,7 +48,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = "category")
+    @EntityGraph(attributePaths = {"category","shop"})
     Optional<Product> findByIdAndIsDeletedFalse(Long id);
 
     boolean existsBySlug(String slug);
@@ -57,6 +69,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         FROM Product p
         WHERE p.isDeleted = false
           AND p.isActive = true
+          AND p.isBlocked = false
+          AND p.shop.status = com.example.shoptech.entity.ShopStatus.ACTIVE
+          AND p.shop.owner.isActive = true AND p.shop.owner.isDeleted = false
           AND p.category.isDeleted = false
           AND p.category.isActive = true
           AND LOWER(p.name) LIKE LOWER(
@@ -72,13 +87,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Chi tiết cũng kiểm tra trạng thái để tránh truy cập
     // sản phẩm đang ẩn bằng đường dẫn trực tiếp.
-    @EntityGraph(attributePaths = "category")
+    @EntityGraph(attributePaths = {"category","shop"})
     @Query("""
         SELECT p
         FROM Product p
         WHERE p.slug = :slug
           AND p.isDeleted = false
           AND p.isActive = true
+          AND p.isBlocked = false
+          AND p.shop.status = com.example.shoptech.entity.ShopStatus.ACTIVE
+          AND p.shop.owner.isActive = true AND p.shop.owner.isDeleted = false
           AND p.category.isDeleted = false
           AND p.category.isActive = true
         """)

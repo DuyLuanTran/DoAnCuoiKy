@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="fields" class="shop-form-wrapper">
+    <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}" role="alert" style="border-radius: 10px; margin-bottom: 22px; font-size: 13.5px;">
+        <i class="fa fa-exclamation-triangle" style="margin-right: 6px;"></i>
+        <strong>Vui lòng kiểm tra lại thông tin:</strong>
+        <ul style="margin: 8px 0 0 18px; padding: 0;">
+            <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
+        </ul>
+    </div>
+
+    <!-- Tên gian hàng -->
+    <div class="form-group custom-fg">
+        <label for="name" class="custom-label">
+            <i class="fa fa-shopping-bag label-icon"></i> Tên gian hàng / Doanh nghiệp <span class="text-danger">*</span>
+        </label>
+        <div class="custom-input-box">
+            <input id="name" class="form-control custom-input" th:field="*{name}" maxlength="100" required
+                   placeholder="Ví dụ: Shop Công Nghệ Số 1, Phụ Kiện Chính Hãng...">
+        </div>
+        <small class="form-hint">Tên này sẽ hiển thị công khai tới tất cả khách hàng trên website ShopTech.</small>
+        <small class="text-danger" th:errors="*{name}"></small>
+    </div>
+
+    <!-- Email và SĐT liên hệ -->
+    <div class="row">
+        <div class="col-md-6 form-group custom-fg">
+            <label for="email" class="custom-label">
+                <i class="fa fa-envelope label-icon"></i> Email liên hệ kinh doanh <span class="text-danger">*</span>
+            </label>
+            <div class="custom-input-box">
+                <input id="email" class="form-control custom-input" type="email" th:field="*{email}" maxlength="100" required
+                       placeholder="shop@example.com">
+            </div>
+            <small class="form-hint">Dùng để nhận thông báo đơn hàng và đối soát doanh thu.</small>
+            <small class="text-danger" th:errors="*{email}"></small>
+        </div>
+        <div class="col-md-6 form-group custom-fg">
+            <label for="phone" class="custom-label">
+                <i class="fa fa-phone label-icon"></i> Số điện thoại hotline shop <span class="text-danger">*</span>
+            </label>
+            <div class="custom-input-box">
+                <input id="phone" class="form-control custom-input" type="tel" th:field="*{phone}" maxlength="20" required
+                       placeholder="Ví dụ: 0901234567">
+            </div>
+            <small class="form-hint">Số điện thoại để shipper liên hệ và CSKH.</small>
+            <small class="text-danger" th:errors="*{phone}"></small>
+        </div>
+    </div>
+
+    <!-- Địa chỉ kho lấy hàng -->
+    <div class="form-group custom-fg">
+        <label for="address" class="custom-label">
+            <i class="fa fa-map-marker label-icon"></i> Địa chỉ kho lấy hàng <span class="text-danger">*</span>
+        </label>
+        <div class="custom-input-box">
+            <textarea id="address" class="form-control custom-textarea" th:field="*{address}" maxlength="500" rows="2" required
+                      placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."></textarea>
+        </div>
+        <small class="form-hint">Địa chỉ thực tế để nhân viên bưu cục qua nhận các kiện hàng khi có phát sinh đơn.</small>
+        <small class="text-danger" th:errors="*{address}"></small>
+    </div>
+
+    <!-- Giới thiệu gian hàng -->
+    <div class="form-group custom-fg">
+        <label for="description" class="custom-label">
+            <i class="fa fa-info-circle label-icon"></i> Giới thiệu gian hàng & Lĩnh vực kinh doanh
+        </label>
+        <div class="custom-input-box">
+            <textarea id="description" class="form-control custom-textarea" th:field="*{description}" maxlength="2000" rows="4"
+                      placeholder="Mô tả về thế mạnh của shop, các dòng sản phẩm kinh doanh (Điện thoại, Laptop, Phụ kiện, Smartwatch...), chính sách bảo hành..."></textarea>
+        </div>
+        <small class="form-hint">Giới thiệu ngắn gọn giúp Admin duyệt nhanh hơn và thu hút khách hàng mua sắm.</small>
+        <small class="text-danger" th:errors="*{description}"></small>
+    </div>
+
+    <!-- Hộp cam kết kinh doanh -->
+    <div class="seller-commitment-box">
+        <i class="fa fa-shield commitment-icon"></i>
+        <div class="commitment-text">
+            <strong>Cam kết tuân thủ chính sách người bán ShopTech:</strong>
+            <p>Cam kết 100% hàng chính hãng, không bán hàng giả, hàng nhái kém chất lượng. Chịu trách nhiệm bảo hành và xử lý đơn hàng nhanh chóng theo quy định của sàn.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

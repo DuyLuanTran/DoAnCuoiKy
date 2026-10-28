@@ -39,6 +39,19 @@
                 <strong id="order-status" class="order-detail-status" th:attr="data-order-id=${order.id}" th:text="${order.status}"></strong>
             </p>
         </div>
+        <div th:if="${shopOrders != null}" class="order-shipping" style="margin-bottom:24px">
+            <h2>Đơn theo shop</h2>
+            <div th:each="s : ${shopOrders}" style="padding:10px 0;border-bottom:1px solid #e4e7ed"><strong th:text="${s.shopName}"></strong><span th:text="' · '+${s.status}+' · '+${s.paymentStatus}"></span><p style="margin:5px 0" th:text="${s.code}+' — '+${#numbers.formatDecimal(s.total,1,'POINT',0,'COMMA')}+' ₫'"></p>
+                <ol style="margin:8px 0 0;padding-left:22px" aria-label="Lịch sử trạng thái của shop">
+                    <li th:each="step : ${shopHistory[s.id]}" style="padding:3px 0"><strong th:text="${step.status}"></strong> · <time th:text="${#temporals.format(step.at.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')),'dd/MM/yyyy HH:mm')}"></time></li>
+                </ol>
+                <form th:if="${s.status.name() == 'COMPLETED'}" th:action="@{/orders/{orderId}/shops/{shopOrderId}/return(orderId=${order.id},shopOrderId=${s.id})}" method="post" style="margin-top:12px">
+                    <label th:for="'return-reason-'+${s.id}">Yêu cầu trả hàng</label>
+                    <input class="form-control" th:id="'return-reason-'+${s.id}" name="reason" minlength="10" maxlength="1000" required placeholder="Nhập lý do trả hàng (ít nhất 10 ký tự)">
+                    <button class="primary-btn" type="submit" style="margin-top:8px">Gửi yêu cầu</button>
+                </form>
+            </div>
+        </div>
         <div class="order-detail-layout">
             <div class="order-detail-main">
                 <section class="order-shipping" aria-label="Thông tin giao hàng">
@@ -68,7 +81,7 @@
                 </section>
             </div>
             <aside class="order-detail-summary" aria-label="Tóm tắt đơn hàng">
-                <h2>Tóm tắt đơn hàng</h2>
+                <h2>Tóm tắt đơn hàng</h2><p class="small">Tổng bên dưới không gồm phần hàng đã CANCELLED hoặc REFUNDED.</p>
                 <div class="order-cost-line"><span>Tiền hàng</span><strong th:text="${#numbers.formatDecimal(order.subtotal,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
                 <div class="order-cost-line"><span>Phí giao hàng</span><strong th:text="${#numbers.formatDecimal(order.shippingFee,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
                 <div class="order-total-line"><span>Tổng tiền</span><strong th:text="${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>

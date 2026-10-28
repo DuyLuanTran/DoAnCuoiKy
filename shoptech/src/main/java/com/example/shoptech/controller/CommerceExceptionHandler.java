@@ -5,8 +5,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
-@RestControllerAdvice(assignableTypes = {CartController.class, OrderController.class, AdminOrderController.class, RevenueController.class})
+@RestControllerAdvice(assignableTypes = {CartController.class, OrderController.class, SellerOrderController.class, AdminOrderController.class, RevenueController.class, ProductCommunityController.class, ReviewManagementController.class})
 public class CommerceExceptionHandler {
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ProblemDetail> validation(IllegalArgumentException e) { return ResponseEntity.badRequest().body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,e.getMessage())); }
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ProblemDetail> tooLarge(Exception e) { return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,"Tệp vượt quá giới hạn dung lượng.")); }
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ProblemDetail> business(ResponseStatusException e) {
         return ResponseEntity.status(e.getStatusCode()).body(ProblemDetail.forStatusAndDetail(e.getStatusCode(), e.getReason() == null ? "Yêu cầu không hợp lệ." : e.getReason()));

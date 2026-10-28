@@ -26,6 +26,7 @@ class CommerceIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired UserRepository users;
     @Autowired ProductRepository products;
+    @Autowired ShopRepository shops;
     @Autowired CategoryRepository categories;
     @Autowired CartRepository carts;
     @Autowired CartItemRepository items;
@@ -33,6 +34,7 @@ class CommerceIntegrationTest {
     @Autowired OrderService orderService;
     @Autowired OrderRepository orders;
     @Autowired com.example.shoptech.service.AdminOrderService adminOrders;
+    @Autowired com.example.shoptech.service.SellerOrderService sellerOrders;
     @Autowired com.example.shoptech.service.UserService userService;
     @Autowired com.example.shoptech.service.RevenueService revenue;
     @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
@@ -41,12 +43,13 @@ class CommerceIntegrationTest {
     Long productId;
     @BeforeEach void seed() {
         new TransactionTemplate(manager).executeWithoutResult(status -> {
-            entityManager.createQuery("delete from OrderDetail").executeUpdate(); orders.deleteAllInBatch();
-            items.deleteAllInBatch(); carts.deleteAllInBatch(); products.deleteAllInBatch(); categories.deleteAllInBatch(); users.deleteAllInBatch();
+            entityManager.createQuery("delete from ProductModerationHistory").executeUpdate();
+            entityManager.createQuery("delete from ShopOrderHistory").executeUpdate();entityManager.createQuery("delete from OrderDetail").executeUpdate();entityManager.createQuery("delete from ShopOrder").executeUpdate(); orders.deleteAllInBatch();
+            items.deleteAllInBatch(); carts.deleteAllInBatch(); products.deleteAllInBatch(); categories.deleteAllInBatch(); entityManager.createQuery("delete from ShopReviewHistory").executeUpdate(); shops.deleteAllInBatch(); users.deleteAllInBatch();
             users.save(User.builder().username("alice").email("alice@example.invalid").password("unused").fullName("Alice Test").build());
             users.save(User.builder().username("bob").email("bob@example.invalid").password("unused").fullName("Bob Test").build());
             Category category = new Category(); category.setName("Test"); category.setSlug("test"); categories.save(category);
-            Product product = new Product(); product.setCategory(category); product.setName("Test product"); product.setSlug("test-product"); product.setPrice(new BigDecimal("100")); product.setStockQuantity(10);
+            Product product = new Product(); product.setShop(TestShops.active(shops,users.findByUsernameAndIsDeletedFalse("alice").orElseThrow(),"commerce-shop")); product.setCategory(category); product.setName("Test product"); product.setSlug("test-product"); product.setPrice(new BigDecimal("100")); product.setStockQuantity(10);
             productId = products.saveAndFlush(product).getId();
         });
     }
@@ -105,7 +108,7 @@ class CommerceIntegrationTest {
     }
     @Test void rollbackRestoresEarlierProductWhenLaterLineFails() {
         cartService.add("alice",productId,1);
-        Long second = new TransactionTemplate(manager).execute(s -> { Product p=new Product(); p.setCategory(categories.findAll().get(0)); p.setName("Second"); p.setSlug("second"); p.setPrice(BigDecimal.TEN); p.setStockQuantity(1); return products.saveAndFlush(p).getId(); });
+        Long second = new TransactionTemplate(manager).execute(s -> { Product p=new Product();p.setShop(products.findById(productId).orElseThrow().getShop()); p.setCategory(categories.findAll().get(0)); p.setName("Second"); p.setSlug("second"); p.setPrice(BigDecimal.TEN); p.setStockQuantity(1); return products.saveAndFlush(p).getId(); });
         cartService.add("alice",second,1);
         new TransactionTemplate(manager).executeWithoutResult(s -> products.findById(second).orElseThrow().setIsDeleted(true));
         assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> orderService.checkout("alice",checkoutInput()));
@@ -136,6 +139,14 @@ class CommerceIntegrationTest {
         mvc.perform(post("/api/orders").with(csrf()).contentType("application/json").content("{}")) .andExpect(status().isBadRequest());
         assertEquals(0,orders.count());
     }
+    OrderDto sellerTransition(Long orderId,OrderDto.Transition input){
+        Long child=jdbc.queryForObject("select id from shop_orders where order_id=?",Long.class,orderId);
+        var before=org.springframework.security.core.context.SecurityContextHolder.getContext();
+        var context=org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("alice","unused",java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_SELLER"))));
+        org.springframework.security.core.context.SecurityContextHolder.setContext(context);
+        try{return sellerOrders.transition("alice",child,input,"Integration test");}finally{org.springframework.security.core.context.SecurityContextHolder.setContext(before);}
+    }
     OrderDto placeOrder() { cartService.add("alice",productId,1); return orderService.checkout("alice",checkoutInput()); }
     @Test @WithMockUser(username="alice",roles="USER") void adminEndpointsDenyUser() throws Exception {
         mvc.perform(get("/admin/orders")).andExpect(status().isForbidden());
@@ -148,27 +159,28 @@ class CommerceIntegrationTest {
         mvc.perform(get("/admin/orders/"+order.id())).andExpect(status().isOk());
         org.springframework.security.core.context.SecurityContextHolder.setContext(org.springframework.security.test.context.TestSecurityContextHolder.getContext());
         assertEquals(1,adminOrders.search("",null,0).getTotalElements()); assertEquals(0,adminOrders.search("",null,1).getContent().size());
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.COMPLETED)));
-        adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CONFIRMED));
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED)));
-        adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.CONFIRMED,OrderStatus.SHIPPING));
-        OrderDto completed=adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.SHIPPING,OrderStatus.COMPLETED));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.COMPLETED)));
+        sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CONFIRMED));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED)));
+        sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.CONFIRMED,OrderStatus.PICKED_UP));
+        sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PICKED_UP,OrderStatus.SHIPPING));
+        OrderDto completed=sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.SHIPPING,OrderStatus.COMPLETED));
         assertEquals("PAID",completed.paymentStatus());
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.COMPLETED,OrderStatus.PENDING)));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.COMPLETED,OrderStatus.PENDING)));
     }
     @Test @WithMockUser(roles="ADMIN") void cancellationRestocksOnceAndIsTerminal() {
         OrderDto order=placeOrder();
-        adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED));
+        sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED));
         assertEquals(10,products.findById(productId).orElseThrow().getStockQuantity());
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.CANCELLED,OrderStatus.CONFIRMED)));
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED)));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.CANCELLED,OrderStatus.CONFIRMED)));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED)));
         assertEquals(10,products.findById(productId).orElseThrow().getStockQuantity());
     }
     @Test @WithMockUser(roles="ADMIN") void concurrentAdminsGetConflictAndRestockOnce() throws Exception {
         OrderDto order=placeOrder(); ExecutorService pool=Executors.newFixedThreadPool(2); CountDownLatch start=new CountDownLatch(1);
         var context=org.springframework.security.core.context.SecurityContextHolder.getContext();
         try {
-            Callable<Boolean> change=()->{org.springframework.security.core.context.SecurityContextHolder.setContext(context); try {start.await();adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED));return true;}catch(org.springframework.web.server.ResponseStatusException e){assertEquals(409,e.getStatusCode().value());return false;}finally{org.springframework.security.core.context.SecurityContextHolder.clearContext();}};
+            Callable<Boolean> change=()->{org.springframework.security.core.context.SecurityContextHolder.setContext(context); try {start.await();sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED));return true;}catch(org.springframework.web.server.ResponseStatusException e){assertEquals(409,e.getStatusCode().value());return false;}finally{org.springframework.security.core.context.SecurityContextHolder.clearContext();}};
             Future<Boolean> a=pool.submit(change),b=pool.submit(change);start.countDown();assertNotEquals(a.get(20,TimeUnit.SECONDS),b.get(20,TimeUnit.SECONDS));
             assertEquals(10,products.findById(productId).orElseThrow().getStockQuantity());
         }finally{pool.shutdownNow();}
@@ -180,6 +192,7 @@ class CommerceIntegrationTest {
         jdbc.update("update orders set order_status='CANCELLED', created_at=? where id=?",java.time.OffsetDateTime.parse("2026-02-01T00:00:00Z"),cancelled.id());
         jdbc.update("update orders set created_at=? where id=?",java.time.OffsetDateTime.parse("2026-02-01T00:00:00Z"),pending.id());
         jdbc.update("update orders set order_status='COMPLETED', is_deleted=true, created_at=? where id=?",java.time.OffsetDateTime.parse("2026-02-01T00:00:00Z"),deleted.id());
+        jdbc.update("update shop_orders s set status=(select order_status from orders o where o.id=s.order_id),created_at=(select created_at from orders o where o.id=s.order_id)");
         var report=revenue.report(java.time.LocalDate.parse("2026-01-31"),java.time.LocalDate.parse("2026-02-01"),com.example.shoptech.service.RevenueService.Group.DAY);
         assertEquals(new BigDecimal("200.00"),report.totalRevenue());assertEquals(2,report.completedOrders()); assertEquals(1,report.points().get(0).orders());assertEquals(1,report.points().get(1).orders());
         var monthly=revenue.report(java.time.LocalDate.parse("2026-01-01"),java.time.LocalDate.parse("2026-02-28"),com.example.shoptech.service.RevenueService.Group.MONTH);
@@ -220,9 +233,11 @@ class CommerceIntegrationTest {
         assertTrue(cookie.contains("HttpOnly"));assertTrue(cookie.contains("SameSite=Lax"));
         jakarta.servlet.http.Cookie auth=new jakarta.servlet.http.Cookie("SHOPTECH_AUTH",cookie.substring("SHOPTECH_AUTH=".length(),cookie.indexOf(';')));
         mvc.perform(get("/cart").cookie(auth)).andExpect(status().isOk());
-        mvc.perform(post("/logout").cookie(auth).with(csrf())).andExpect(status().is3xxRedirection()).andExpect(header().string("Location","/login?logout"));
+        mvc.perform(post("/logout").cookie(auth).with(csrf())).andExpect(status().is3xxRedirection()).andExpect(header().string("Location","/"));
         mvc.perform(get("/cart")).andExpect(status().is3xxRedirection());
-        mvc.perform(get("/")).andExpect(status().isOk());mvc.perform(get("/login")).andExpect(status().isOk());
+        mvc.perform(get("/")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Đăng nhập")));
+        mvc.perform(get("/login")).andExpect(status().isOk());
     }
     @Test @WithMockUser(roles="ADMIN") void existingAdminPagesRegression() throws Exception {
         User bob=users.findByUsernameAndIsDeletedFalse("bob").orElseThrow();
@@ -342,26 +357,28 @@ class CommerceIntegrationTest {
     }
     @Test @WithMockUser(username="alice") void shoppingLinksDoNotLoopBackToLoggedInLanding() throws Exception {
         var link=java.util.regex.Pattern.compile("<a[^>]*href=\"/products\"[^>]*>\\s*(?:<i[^>]*></i>\\s*)?Tiếp tục mua sắm\\s*</a>");
-        for(String url:java.util.List.of("/user/home","/account")) {
+        for(String url:java.util.List.of("/","/account")) {
             String html=mvc.perform(get(url)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
             assertTrue(link.matcher(html).find(),"Shopping CTA should lead to catalog: "+url);
         }
     }
     @Test @WithMockUser(roles="ADMIN") void confirmedCancellationAndPaidOrderProtection() {
-        OrderDto order=placeOrder();adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CONFIRMED));
+        OrderDto order=placeOrder();sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CONFIRMED));
         jdbc.update("update orders set payment_status='PAID' where id=?",order.id());
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.CONFIRMED,OrderStatus.CANCELLED)));
+        jdbc.update("update shop_orders set payment_status='PAID' where order_id=?",order.id());
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.CONFIRMED,OrderStatus.CANCELLED)));
         assertEquals(9,products.findById(productId).orElseThrow().getStockQuantity());
         jdbc.update("update orders set payment_status='UNPAID' where id=?",order.id());
-        assertEquals(OrderStatus.CANCELLED,adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.CONFIRMED,OrderStatus.CANCELLED)).status());
+        jdbc.update("update shop_orders set payment_status='UNPAID' where order_id=?",order.id());
+        assertEquals(OrderStatus.CANCELLED,sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.CONFIRMED,OrderStatus.CANCELLED)).status());
         assertEquals(10,products.findById(productId).orElseThrow().getStockQuantity());
     }
     @Test @WithMockUser(roles="ADMIN") void cancellationRollsBackEarlierRestockWhenLaterLineFails() {
         cartService.add("alice",productId,1);
-        Long second=new TransactionTemplate(manager).execute(s->{Product p=new Product();p.setName("Second");p.setSlug("second");p.setPrice(BigDecimal.ONE);p.setStockQuantity(1);p.setCategory(categories.findAll().get(0));return products.saveAndFlush(p).getId();});
+        Long second=new TransactionTemplate(manager).execute(s->{Product p=new Product();p.setShop(products.findById(productId).orElseThrow().getShop());p.setName("Second");p.setSlug("second");p.setPrice(BigDecimal.ONE);p.setStockQuantity(1);p.setCategory(categories.findAll().get(0));return products.saveAndFlush(p).getId();});
         cartService.add("alice",second,1);OrderDto order=orderService.checkout("alice",checkoutInput());
         jdbc.update("update products set stock_quantity=? where id=?",Integer.MAX_VALUE,second);
-        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->adminOrders.transition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED)));
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,()->sellerTransition(order.id(),new OrderDto.Transition(OrderStatus.PENDING,OrderStatus.CANCELLED)));
         assertEquals(9,products.findById(productId).orElseThrow().getStockQuantity());assertEquals(Integer.MAX_VALUE,products.findById(second).orElseThrow().getStockQuantity());
         assertEquals(OrderStatus.PENDING,orderService.owned("alice",order.id()).status());
     }

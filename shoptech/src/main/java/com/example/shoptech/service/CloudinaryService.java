@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@org.springframework.context.annotation.Profile("!isolated")
 public class CloudinaryService {
 
     private static final Logger log =

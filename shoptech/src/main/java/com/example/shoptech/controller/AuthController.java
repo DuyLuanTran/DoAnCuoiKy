@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -41,6 +42,11 @@ public class AuthController {
     private final PasswordResetService passwordResetService;
     private final boolean secureCookie;
 
+    @ModelAttribute
+    public void initializeCsrfToken(CsrfToken csrfToken) {
+        csrfToken.getToken();
+    }
+
     public AuthController(
             UserService userService,
             CategoryService categoryService,
@@ -57,7 +63,10 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(@RequestParam(required = false) String redirect, Model model) {
+        if (redirect != null && !redirect.isBlank()) {
+            model.addAttribute("redirect", redirect);
+        }
         return "admin/login";
     }
 
@@ -65,6 +74,7 @@ public class AuthController {
     public String authenticate(
             @RequestParam String username,
             @RequestParam String password,
+            @RequestParam(required = false) String redirect,
             jakarta.servlet.http.HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -78,20 +88,20 @@ public class AuthController {
                     .maxAge(jwtService.getValiditySeconds())
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-            return redirectAfterLogin(authentication);
+            if (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//")) {
+                boolean isAdmin = authentication.getAuthorities().stream()
+                        .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+                if (!isAdmin) {
+                    return "redirect:" + redirect;
+                }
+            }
+            return redirectAfterLogin();
         } catch (AuthenticationException exception) {
-            return "redirect:/login?error";
+            String redirectParam = (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//"))
+                    ? "&redirect=" + java.net.URLEncoder.encode(redirect, java.nio.charset.StandardCharsets.UTF_8)
+                    : "";
+            return "redirect:/login?error" + redirectParam;
         }
-    }
-
-    @GetMapping("/")
-    public String home(Authentication authentication) {
-        if (authentication != null
-                && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken)) {
-            return redirectAfterLogin(authentication);
-        }
-        return "user/index";
     }
 
     @GetMapping("/admin")
@@ -101,20 +111,16 @@ public class AuthController {
     }
 
     @GetMapping("/user/home")
-    public String userHome(Model model, Authentication authentication) {
-        return userService.findByUsername(authentication.getName())
-                .map(user -> {
-                    model.addAttribute("account", user);
-                    return "user/home";
-                })
-                .orElse("redirect:/login?error");
-    }
+    public String userHome(){return "redirect:/";}
 
     @GetMapping("/account")
     public String account(Authentication authentication, Model model) {
         return userService.findByUsername(authentication.getName())
                 .map(user -> {
                     model.addAttribute("account", user);
+                    boolean admin = user.getRoles().stream().anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
+                    boolean seller = user.getRoles().stream().anyMatch(role -> "ROLE_SELLER".equals(role.getName()));
+                    model.addAttribute("accountRole", admin ? "Quản trị viên" : seller ? "Người bán" : "Khách hàng");
                     model.addAttribute("categories", categoryService.getAvailableCategories());
                     return "user/account";
                 })
@@ -122,16 +128,24 @@ public class AuthController {
     }
 
     @GetMapping("/register")
-    public String registerForm(Model model) {
+    public String registerForm(@RequestParam(required = false) String redirect, Model model) {
         model.addAttribute("registerForm", new RegisterDTO());
+        if (redirect != null && !redirect.isBlank()) {
+            model.addAttribute("redirect", redirect);
+        }
         return "admin/register";
     }
 
     @PostMapping("/register")
     public String register(
+            @RequestParam(required = false) String redirect,
             @Valid @ModelAttribute("registerForm") RegisterDTO registerForm,
-            BindingResult bindingResult) {
+            BindingResult bindingResult,
+            Model model) {
         if (bindingResult.hasErrors()) {
+            if (redirect != null && !redirect.isBlank()) {
+                model.addAttribute("redirect", redirect);
+            }
             return "admin/register";
         }
 
@@ -139,10 +153,16 @@ public class AuthController {
             userService.registerUser(registerForm);
         } catch (IllegalArgumentException exception) {
             bindingResult.reject("registration.failed", exception.getMessage());
+            if (redirect != null && !redirect.isBlank()) {
+                model.addAttribute("redirect", redirect);
+            }
             return "admin/register";
         }
 
-        return "redirect:/login?registered";
+        String redirectParam = (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//"))
+                ? "&redirect=" + java.net.URLEncoder.encode(redirect, java.nio.charset.StandardCharsets.UTF_8)
+                : "";
+        return "redirect:/login?registered" + redirectParam;
     }
 
     @GetMapping("/forgot-password")
@@ -195,9 +215,7 @@ public class AuthController {
         }
     }
 
-    private String redirectAfterLogin(Authentication authentication) {
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
-        return isAdmin ? "redirect:/admin" : "redirect:/user/home";
+    private String redirectAfterLogin() {
+        return "redirect:/products";
     }
 }

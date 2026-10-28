@@ -1,0 +1,28 @@
+.notification-root { position: relative; }
+.notification-toggle { position: relative; border: 0; background: transparent; cursor: pointer; }
+#header .notification-toggle { display: block; color: #fff; min-width: 76px; padding: 0; font: inherit; line-height: inherit; text-align: center; }
+#header .notification-toggle i { display: block; font-size: 18px; margin: 0; }
+#header .notification-toggle span { display: block; font-size: 12px; font-weight: normal; white-space: nowrap; }
+.notification-toggle b { position: absolute; top: -8px; right: 10px; display: inline-block; min-width: 18px; padding: 1px 4px; border-radius: 10px; background: #d10024; color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+.notification-toggle b[hidden], .notification-panel[hidden] { display: none !important; }
+.notification-panel { position: absolute; z-index: 1100; right: 0; top: calc(100% + 12px); width: min(360px, 90vw); max-height: 410px; overflow-y: auto; padding: 14px; border: 1px solid #e4e7ed; background: #fff; box-shadow: 0 8px 25px #0002; text-align: left; color: #2b2d42; }
+.notification-panel h3 { margin: 0 0 10px; font-size: 17px; color: #2b2d42; }
+.notification-panel p { margin: 8px 0; color: #777; }
+.notification-item { display: block; width: 100%; padding: 10px 4px; border: 0; border-top: 1px solid #e4e7ed; background: transparent; color: #2b2d42; text-align: left; cursor: pointer; white-space: normal; }
+.notification-item:hover { background: #f7f8fa; }
+.notification-item.unread { font-weight: 700; }
+.notification-item small { display: block; margin-top: 4px; color: #888; font-weight: 400; }
+.notification-more { width: 100%; padding: 10px; border: 1px solid #e4e7ed; background: #fff; color: #d10024; cursor: pointer; }
+.notification-admin .notification-toggle { height: 100%; color: #858796; padding: 0 12px; }
+.notification-admin .notification-toggle i { font-size: 18px; margin-right: 4px; }
+.notification-admin .notification-toggle b { top: 2px; right: 0; }
+.notification-admin .notification-panel { top: 100%; }
+@media (min-width: 992px) {
+  #header .container > .row > .col-md-6 { width: 45%; }
+  #header .container > .row > .col-md-3.clearfix { width: 30%; }
+  #header .header-ctn { display: flex; align-items: flex-start; gap: 4px; }
+  #header .header-ctn > div { margin-left: 0; }
+  #header .header-ctn > div > a, #header .notification-toggle { width: 70px; min-width: 0; }
+  #header .header-ctn > div > a.store-account { width: 70px; min-width: 0; }
+}
+@media (max-width: 767px) { .notification-panel { right: -110px; } }

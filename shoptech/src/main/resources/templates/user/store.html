@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Sản phẩm | ShopTech</title>
+    <title th:text="${storeShop != null} ? ${storeShop.name}+' | ShopTech' : 'Sản phẩm | ShopTech'">Sản phẩm | ShopTech</title>
 
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
@@ -17,6 +17,8 @@
     <link rel="stylesheet" th:href="@{/user/css/nouislider.min.css}">
     <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
     <link rel="stylesheet" th:href="@{/user/css/style.css}">
+
+    <link rel="stylesheet" th:href="@{/user/css/marketplace.css}">
 
     <!-- Chỉ xử lý chữ dài, form tìm kiếm và kích thước ảnh -->
     <style>
@@ -427,10 +429,12 @@
 
 <body>
 <!-- HEADER -->
-<header>
+<header th:fragment="header">
     <div id="top-header">
         <div class="container">
             <ul class="header-links pull-right">
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/shop-registration}"><i class="fa fa-shopping-bag" aria-hidden="true"></i> Shop của tôi</a></li>
+                <li sec:authorize="hasRole('SELLER')"><a th:href="@{/seller}"><i class="fa fa-briefcase" aria-hidden="true"></i> Quản lý shop</a></li>
                 <li sec:authorize="isAnonymous()">
                     <a th:href="@{/login}">
                         <i class="fa fa-sign-in" aria-hidden="true"></i>
@@ -473,7 +477,7 @@
                 <div class="col-md-3">
                     <div class="header-logo">
                         <a class="logo store-brand"
-                           th:href="@{/products}">
+                           th:href="@{/}">
                             ShopTech<span>.</span>
                         </a>
                     </div>
@@ -482,7 +486,9 @@
                 <!-- Tìm kiếm -->
                 <div class="col-md-6">
                     <div class="header-search">
-                        <form th:action="@{/products}" method="get">
+                        <form th:action="@{${catalogBase ?: '/products'}}" method="get">
+                            <input th:if="${minSold != null and minSold > 0}" type="hidden" name="minSold" th:value="${minSold}">
+                            <input th:if="${shopId != null}" type="hidden" name="shopId" th:value="${shopId}">
                             <input th:if="${minPrice != null}"
                                 type="hidden" name="minPrice"
                                 th:value="${minPrice}">
@@ -531,6 +537,11 @@
                 <!-- Tài khoản -->
                 <div class="col-md-3 clearfix">
                     <div class="header-ctn">
+                        <div sec:authorize="isAuthenticated()" class="notification-root" data-notification-root>
+                            <button type="button" class="notification-toggle" data-notification-toggle aria-label="Thông báo" aria-expanded="false"><i class="fa fa-bell-o" aria-hidden="true"></i><span>Thông báo <b data-notification-count hidden></b></span></button>
+                            <div class="notification-panel" data-notification-panel hidden></div>
+                        </div>
+                        <div><a th:href="@{/favorites}"><i class="fa fa-heart-o" aria-hidden="true"></i><span>Yêu thích</span></a></div>
                         <div>
                             <a th:href="@{/cart}">
                                 <i class="fa fa-shopping-cart" aria-hidden="true"></i>
@@ -567,34 +578,7 @@
 </header>
 
 <!-- NAVIGATION -->
-<nav id="navigation" aria-label="Điều hướng cửa hàng">
-    <div class="container">
-        <div id="responsive-nav">
-            <ul class="main-nav nav navbar-nav">
-                <li th:classappend="${categoryId == null} ? 'active'">
-                    <a th:href="@{/products}">Tất cả sản phẩm</a>
-                </li>
-
-                <li th:each="category : ${categories}"
-                    th:classappend="${category.id == categoryId} ? 'active'">
-
-                    <a th:href="@{/products(
-                        categoryId=${category.id},
-                        keyword=${keyword},
-                        minPrice=${minPrice},
-                        maxPrice=${maxPrice},
-                        inStock=${inStock},
-                        onSale=${onSale},
-                        sort=${sort},
-                        size=${pageSize}
-                    )}"
-                    th:text="${category.name}">
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
+<nav th:replace="~{fragments/store-navigation :: navigation('products')}"></nav>
 
 <!-- BREADCRUMB -->
 <div id="breadcrumb" class="section">
@@ -604,6 +588,7 @@
                 <ul class="breadcrumb-tree">
                     <li><a th:href="@{/}">Trang chủ</a></li>
                     <li><a th:href="@{/products}">Sản phẩm</a></li>
+                    <li th:if="${storeShop != null}"><a th:href="@{/shops/{slug}(slug=${storeShop.slug})}" th:text="${storeShop.name}"></a></li>
                     <li class="active"
                         th:text="${products.totalElements} + ' kết quả'">
                     </li>
@@ -613,6 +598,18 @@
     </div>
 </div>
 
+<section class="shop-summary-section" th:if="${storeShop != null}" aria-labelledby="shop-name">
+    <div class="container"><div class="shop-summary">
+        <div class="shop-symbol" aria-hidden="true"><i class="fa fa-shopping-bag"></i></div>
+        <div class="shop-summary-content">
+            <p class="shop-eyebrow">Cửa hàng trên ShopTech</p>
+            <h1 id="shop-name" th:text="${storeShop.name}"></h1>
+            <div class="shop-facts"><span><i class="fa fa-cube" aria-hidden="true"></i> <strong th:text="${shopProductCount}"></strong> sản phẩm</span><span th:if="${storeShop.joinedAt != null}"><i class="fa fa-calendar" aria-hidden="true"></i> Tham gia <span th:text="${#temporals.format(storeShop.joinedAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')),'MM/yyyy')}"></span></span></div>
+            <details class="shop-introduction" th:if="${!#strings.isEmpty(storeShop.description)}"><summary>Giới thiệu shop</summary><p th:text="${storeShop.description}"></p></details>
+        </div>
+        <a class="shop-all-products" th:href="@{/products}"><i class="fa fa-th-large" aria-hidden="true"></i> Mua sắm toàn sàn</a>
+    </div></div>
+</section>
 <!-- SECTION -->
 <div id="catalog-list" class="section">
     <div class="container">
@@ -636,8 +633,10 @@
                         </th:block>
                     </p>
                 <form class="catalog-toolbar"
-                      th:action="@{/products}"
+                      th:action="@{${catalogBase ?: '/products'}}"
                       method="get">
+                    <input th:if="${minSold != null and minSold > 0}" type="hidden" name="minSold" th:value="${minSold}">
+                            <input th:if="${shopId != null}" type="hidden" name="shopId" th:value="${shopId}">
 
                     <input type="hidden" name="keyword"
                            th:value="${keyword}">
@@ -669,6 +668,7 @@
                                     th:selected="${sort == 'newest'}">
                                 Mới nhất
                             </option>
+                            <option value="bestSelling" th:selected="${sort == 'bestSelling'}">Bán chạy</option>
                             <option value="priceAsc"
                                     th:selected="${sort == 'priceAsc'}">
                                 Giá tăng dần
@@ -693,6 +693,7 @@
                                     th:selected="${pageSize == 12}">
                                 12
                             </option>
+                            <option value="20" th:selected="${pageSize == 20}">20</option>
                             <option value="24"
                                     th:selected="${pageSize == 24}">
                                 24
@@ -717,7 +718,7 @@
                     <div class="checkbox-filter">
                         <a class="category-link"
                            th:classappend="${categoryId == null} ? 'selected'"
-                           th:href="@{/products(
+                           th:href="@{${catalogBase ?: '/products'}(shopId=${shopId},minSold=${minSold},
                                keyword=${keyword},
                                size=${pageSize},
                                sort=${sort},
@@ -733,7 +734,7 @@
                            th:each="category : ${categories}"
                            th:classappend="${category.id == categoryId}
                                ? 'selected'"
-                           th:href="@{/products(
+                           th:href="@{${catalogBase ?: '/products'}(shopId=${shopId},minSold=${minSold},
                                categoryId=${category.id},
                                keyword=${keyword},
                                size=${pageSize},
@@ -747,7 +748,18 @@
                         </a>
                     </div>
 
-                    <form th:action="@{/products}" method="get">
+                    <form th:action="@{${catalogBase ?: '/products'}}" method="get">
+                        <input th:if="${minSold != null and minSold > 0}" type="hidden" name="minSold" th:value="${minSold}">
+                        <input th:if="${storeShop != null}" type="hidden" name="shopId" th:value="${shopId}">
+                        <div class="catalog-filter-group" th:if="${storeShop == null}">
+                            <h3 class="aside-title"><label for="shopId">Cửa hàng</label></h3>
+                            <select class="input-select catalog-shop-select" id="shopId" name="shopId" th:title="${selectedShop != null} ? ${selectedShop.name} : 'Tất cả shop'">
+                                <option value="">Tất cả shop</option>
+                                <option th:each="shop : ${shopOptions}" th:value="${shop.id}" th:text="${shop.name}" th:selected="${shop.id == shopId}"></option>
+                            </select>
+                            <p class="catalog-shop-name" th:if="${selectedShop != null}" th:text="${selectedShop.name}"></p>
+                        </div>
+
                         <input type="hidden" name="keyword"
                                th:value="${keyword}">
 
@@ -818,7 +830,7 @@
                             Áp dụng bộ lọc
                         </button>
 
-                        <a class="catalog-reset" th:href="@{/products}">
+                        <a class="catalog-reset" th:href="@{${catalogBase ?: '/products'}}">
                             <i class="fa fa-undo" aria-hidden="true"></i>
                             Xóa bộ lọc
                         </a>
@@ -827,6 +839,8 @@
             </aside>
 
             <div id="store" class="col-md-9">
+                <div class="alert alert-info" th:if="${minSold != null and minSold > 0}" th:text="'Đang lọc sản phẩm có ít nhất '+${minSold}+' lượt mua hoàn tất.'"></div>
+                <div class="catalog-selected-shop" th:if="${selectedShop != null and storeShop == null}"><span><i class="fa fa-shopping-bag" aria-hidden="true"></i> Sản phẩm từ <strong th:text="${selectedShop.name}"></strong></span><a th:href="@{/shops/{slug}(slug=${selectedShop.slug})}">Xem shop <i class="fa fa-angle-right" aria-hidden="true"></i></a></div>
                 <div class="alert alert-danger catalog-filter-error"
                      role="alert"
                      th:if="${filterError != null}"
@@ -844,82 +858,7 @@
                 <div class="row">
                     <th:block th:each="product, item : ${products.content}">
                         <div class="col-md-4 col-xs-6">
-                            <div class="product">
-                                <div class="product-img">
-                                    <a th:href="@{/products/{slug}(
-                                           slug=${product.slug}
-                                       )}">
-                                        <img th:if="${!#strings.isEmpty(product.mainImage)}"
-                                             th:src="${product.mainImage}"
-                                             th:alt="${product.name}"
-                                             loading="lazy">
-
-                                        <span class="text-muted"
-                                              th:if="${#strings.isEmpty(product.mainImage)}">
-                                            Chưa có ảnh
-                                        </span>
-                                    </a>
-
-                                    <div class="product-label"
-                                         th:if="${product.discountPrice != null}">
-                                        <span class="sale">Giảm giá</span>
-                                    </div>
-                                </div>
-
-                                <div class="product-body">
-                                    <p class="product-category"
-                                       th:text="${product.category.name}">
-                                    </p>
-
-                                    <h3 class="product-name">
-                                        <a th:href="@{/products/{slug}(
-                                               slug=${product.slug}
-                                           )}"
-                                           th:text="${product.name}"
-                                           th:title="${product.name}">
-                                        </a>
-                                    </h3>
-
-                                    <h4 class="product-price">
-                                        <span th:text="${
-                                            #numbers.formatDecimal(
-                                                product.discountPrice != null
-                                                    ? product.discountPrice
-                                                    : product.price,
-                                                1, 'POINT', 0, 'COMMA'
-                                            )
-                                        } + ' ₫'">
-                                        </span>
-
-                                        <del class="product-old-price"
-                                             th:if="${product.discountPrice != null}"
-                                             th:text="${
-                                                 #numbers.formatDecimal(
-                                                     product.price,
-                                                     1, 'POINT', 0, 'COMMA'
-                                                 )
-                                             } + ' ₫'">
-                                        </del>
-                                    </h4>
-
-                                    <p class="product-stock"
-                                       th:classappend="${product.stockQuantity > 0}
-                                           ? 'text-success' : 'text-danger'"
-                                       th:text="${product.stockQuantity > 0}
-                                           ? 'Còn hàng' : 'Hết hàng'">
-                                    </p>
-
-                                    <div class="product-btns">
-                                        <a th:href="@{/products/{slug}(
-                                               slug=${product.slug}
-                                           )}">
-                                            <i class="fa fa-eye"
-                                               aria-hidden="true"></i>
-                                            Xem chi tiết
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            <div th:replace="~{fragments/product-card :: card(${product},${soldCounts != null ? soldCounts[product.id] : null})}"></div>
                         </div>
 
                         <div class="clearfix visible-sm visible-xs"
@@ -950,7 +889,7 @@
                          aria-label="Phân trang sản phẩm">
                         <ul class="store-pagination">
                             <li th:if="${products.hasPrevious()}">
-                                <a th:href="@{/products(
+                                <a th:href="@{${catalogBase ?: '/products'}(shopId=${shopId},minSold=${minSold},
                                     page=${products.number - 1},
                                     size=${products.size},
                                     keyword=${keyword},
@@ -972,7 +911,7 @@
                             </li>
 
                             <li th:if="${products.hasNext()}">
-                                <a th:href="@{/products(
+                                <a th:href="@{${catalogBase ?: '/products'}(shopId=${shopId},minSold=${minSold},
                                     page=${products.number + 1},
                                     size=${products.size},
                                     keyword=${keyword},
@@ -996,7 +935,7 @@
 </div>
 
 <!-- FOOTER: không còn newsletter và thông tin liên hệ giả -->
-<footer id="footer">
+<footer id="footer" th:fragment="footer">
     <div class="section">
         <div class="container">
             <div class="row store-footer-columns">
@@ -1069,11 +1008,12 @@
     </div>
 </footer>
 
+<th:block th:fragment="storeScripts">
 <script th:src="@{/user/js/jquery.min.js}"></script>
 <script th:src="@{/user/js/bootstrap.min.js}"></script>
 <script th:src="@{/user/js/slick.min.js}"></script>
 <script th:src="@{/user/js/nouislider.min.js}"></script>
 <script th:src="@{/user/js/jquery.zoom.min.js}"></script>
 <script th:src="@{/user/js/main.js}"></script>
-<th:block th:replace="~{fragments/commerce :: scripts}"/></body>
+<th:block th:replace="~{fragments/commerce :: scripts}"/></th:block></body>
 </html>
