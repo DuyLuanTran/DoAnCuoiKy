@@ -24,3 +24,412 @@
     .checkout-summary-item { gap: 12px; }
     .checkout-summary-price { font-size: 13px; }
 }
+
+/* ==========================================================================
+   GPS & GOOGLE MAPS ADDRESS PICKER STYLES
+   ========================================================================== */
+.address-form-group {
+    position: relative;
+    margin-bottom: 22px;
+}
+
+.address-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.address-header-row label {
+    margin: 0;
+    font-weight: 700;
+    color: #2b2d42;
+}
+
+.address-gps-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-gps-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e88e5;
+    background-color: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    outline: none;
+    line-height: 1.4;
+}
+
+.btn-gps-action:hover {
+    color: #0d47a1;
+    background-color: #bbdefb;
+    border-color: #90caf9;
+    box-shadow: 0 2px 6px rgba(30, 136, 229, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-gps-action:active {
+    transform: translateY(0);
+}
+
+.btn-gps-action i {
+    font-size: 13px;
+}
+
+.btn-gps-action.btn-gps-map {
+    color: #d10024;
+    background-color: #ffebee;
+    border-color: #ffcdd2;
+}
+
+.btn-gps-action.btn-gps-map:hover {
+    color: #b71c1c;
+    background-color: #ffcdd2;
+    border-color: #ef9a9a;
+    box-shadow: 0 2px 6px rgba(209, 0, 36, 0.2);
+}
+
+.btn-gps-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.gps-status-box {
+    margin-bottom: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.gps-status-box.status-loading {
+    color: #0277bd;
+    background-color: #e1f5fe;
+    border: 1px solid #b3e5fc;
+}
+
+.gps-status-box.status-success {
+    color: #2e7d32;
+    background-color: #e8f5e9;
+    border: 1px solid #c8e6c9;
+}
+
+.gps-status-box.status-error {
+    color: #c62828;
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+}
+
+.address-hint-row {
+    margin-top: 6px;
+}
+
+.address-hint-row small {
+    color: #78909c;
+    font-size: 12px;
+}
+
+textarea#shippingAddress {
+    min-height: 85px;
+    resize: vertical;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+textarea#shippingAddress.address-highlight {
+    animation: pulseBorder 1.2s ease;
+}
+
+@keyframes pulseBorder {
+    0% { border-color: #4caf50; box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3); }
+    50% { border-color: #4caf50; box-shadow: 0 0 0 6px rgba(76, 175, 80, 0.15); }
+    100% { border-color: #e4e7ed; box-shadow: none; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal Backdrop & Container */
+.map-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 10005;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+
+.map-modal-backdrop[hidden] {
+    display: none !important;
+}
+
+.map-modal-container {
+    background: #ffffff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.map-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    border-bottom: 1px solid #edf2f7;
+    background: #fafbfc;
+}
+
+.map-modal-heading {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.map-modal-close {
+    background: none;
+    border: none;
+    font-size: 26px;
+    line-height: 1;
+    color: #a0aec0;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    padding: 0 6px;
+}
+
+.map-modal-close:hover {
+    color: #e53e3e;
+}
+
+.map-modal-body {
+    padding: 18px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Map Search Bar */
+.map-search-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.map-search-input-wrap {
+    position: relative;
+    flex: 1;
+}
+
+.map-search-input-wrap .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.map-search-input-wrap input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.map-search-input-wrap input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-modal-locate {
+    padding: 10px 14px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-modal-locate:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Map Canvas */
+.map-canvas-frame {
+    height: 360px;
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    position: relative;
+    background: #f8fafc;
+}
+
+.map-loading-placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #64748b;
+    gap: 10px;
+}
+
+/* Selected Address Card */
+.map-selected-address-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.address-card-header {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.address-card-content {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.5;
+}
+
+.address-card-coords {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Modal Footer */
+.map-modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid #edf2f7;
+    background: #fafbfc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-modal-cancel {
+    padding: 10px 20px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-modal-cancel:hover {
+    background: #e2e8f0;
+}
+
+.btn-modal-confirm {
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-modal-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+    .map-modal-container {
+        max-height: 96vh;
+    }
+    .map-canvas-frame {
+        height: 280px;
+    }
+    .map-search-bar {
+        flex-direction: column;
+    }
+    .btn-modal-locate {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.map-fallback-banner {
+    background-color: #fff9db;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+    animation: fadeIn 0.3s ease;
+}
+
+.map-fallback-banner i {
+    font-size: 16px;
+    color: #e67e22;
+    flex-shrink: 0;
+}
+

@@ -5,8 +5,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
 <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
 <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}">
-<style th:replace="~{user/store :: style}"></style>
-<link rel="stylesheet" th:href="@{/user/css/checkout.css}"></head>
+<link rel="stylesheet" th:href="@{/user/css/checkout.css}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta name="google-maps-api-key" th:content="${googleMapsApiKey}">
+</head>
 <body class="checkout-page">
 <th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
 <nav id="navigation" aria-label="Mua hàng">
@@ -23,9 +26,73 @@
 <div class="billing-details"><h3 class="title">Thông tin giao hàng</h3>
 <div class="form-group"><label for="recipientName">Tên người nhận</label><input id="recipientName" name="recipientName" class="input" maxlength="100" required autocomplete="name"></div>
 <div class="form-group"><label for="recipientPhone">Số điện thoại</label><input id="recipientPhone" name="recipientPhone" class="input" maxlength="20" minlength="8" required autocomplete="tel"></div>
-<div class="form-group"><label for="shippingAddress">Địa chỉ giao hàng</label><textarea id="shippingAddress" name="shippingAddress" class="input" maxlength="2000" required autocomplete="street-address"></textarea></div>
+<div class="form-group address-form-group">
+    <div class="address-header-row">
+        <label for="shippingAddress">Địa chỉ giao hàng</label>
+        <div class="address-gps-actions">
+            <button type="button" id="btn-gps-locate" class="btn-gps-action" title="Định vị vị trí hiện tại của bạn qua GPS">
+                <i class="fa fa-crosshairs" aria-hidden="true"></i> <span>Định vị GPS</span>
+            </button>
+            <button type="button" id="btn-open-map" class="btn-gps-action btn-gps-map" title="Mở bản đồ Google để tìm kiếm và ghim địa chỉ">
+                <i class="fa fa-map-marker" aria-hidden="true"></i> <span>Chọn trên bản đồ Google</span>
+            </button>
+        </div>
+    </div>
+    <div id="gps-status-indicator" class="gps-status-box" aria-live="polite" hidden></div>
+    <textarea id="shippingAddress" name="shippingAddress" class="input" maxlength="2000" required autocomplete="street-address" placeholder="Nhập địa chỉ giao hàng hoặc bấm nút 'Định vị GPS' / 'Chọn trên bản đồ Google' ở trên..."></textarea>
+    <div class="address-hint-row">
+        <small class="text-muted"><i class="fa fa-info-circle"></i> Bấm <strong>Định vị GPS</strong> để tự động điền vị trí hiện tại hoặc <strong>Chọn trên bản đồ Google</strong> để ghim vị trí chính xác.</small>
+    </div>
+</div>
 <div class="form-group"><label for="note">Ghi chú</label><textarea id="note" name="note" class="input" maxlength="2000"></textarea></div>
 <p>Thanh toán khi nhận hàng (COD). Phí giao hàng: 0 ₫.</p><input type="hidden" name="paymentMethod" value="COD">
 <button id="place-order" type="submit" class="primary-btn" disabled>Xác nhận đặt hàng</button></div></form></div>
 <aside class="col-md-5"><div class="order-details checkout-order" aria-labelledby="checkout-order-title"><h3 class="title" id="checkout-order-title">Đơn hàng của bạn</h3><div id="checkout-summary" aria-live="polite">Đang tải…</div></div></aside></div>
-</main><th:block th:replace="~{fragments/commerce :: scripts}"/><script th:src="@{/user/js/checkout.js}" defer></script></body></html>
+</main>
+
+<!-- Modal Google Maps Address Picker -->
+<div id="map-picker-modal" class="map-modal-backdrop" hidden>
+    <div class="map-modal-container" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
+        <div class="map-modal-header">
+            <h3 id="map-modal-title" class="map-modal-heading"><i class="fa fa-map-marker text-danger"></i> Dò tìm vị trí giao hàng trên Google Maps</h3>
+            <button type="button" class="map-modal-close" id="btn-modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="map-modal-body">
+            <div id="map-fallback-notice" class="map-fallback-banner" hidden>
+                <i class="fa fa-info-circle"></i>
+                <span>Google Maps chưa bật thanh toán (Billing). Hệ thống tự động chuyển sang bản đồ dự phòng để bạn định vị GPS và chọn địa chỉ bình thường!</span>
+            </div>
+            <div class="map-search-bar">
+                <div class="map-search-input-wrap">
+                    <i class="fa fa-search search-icon"></i>
+                    <input type="text" id="map-search-input" placeholder="Tìm kiếm địa chỉ, tên đường, địa điểm trên Google Maps..." autocomplete="off">
+                </div>
+                <button type="button" id="btn-modal-gps" class="btn-modal-locate" title="Định vị vị trí hiện tại của bạn">
+                    <i class="fa fa-crosshairs"></i> Vị trí của tôi
+                </button>
+            </div>
+            <div id="google-map-element" class="map-canvas-frame">
+                <div class="map-loading-placeholder">
+                    <i class="fa fa-spinner fa-spin"></i> Đang tải bản đồ...
+                </div>
+            </div>
+            <div class="map-selected-address-card">
+                <div class="address-card-header">
+                    <i class="fa fa-dot-circle-o text-primary"></i> <strong>Địa chỉ đang chọn:</strong>
+                </div>
+                <div id="map-current-address" class="address-card-content">
+                    Kéo thả ghim đỏ hoặc click trên bản đồ để chọn vị trí chính xác
+                </div>
+                <div id="map-current-coords" class="address-card-coords"></div>
+            </div>
+        </div>
+        <div class="map-modal-footer">
+            <button type="button" class="btn-modal-cancel" id="btn-modal-cancel">Hủy bỏ</button>
+            <button type="button" class="primary-btn btn-modal-confirm" id="btn-modal-confirm" disabled>
+                <i class="fa fa-check"></i> Xác nhận địa chỉ này
+            </button>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/commerce :: scripts}"/><script th:src="@{/user/js/checkout.js}" defer></script></body></html>

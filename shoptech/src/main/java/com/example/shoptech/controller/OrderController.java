@@ -3,6 +3,7 @@ import com.example.shoptech.dto.OrderDto;
 import com.example.shoptech.service.OrderService;
 import com.example.shoptech.service.CategoryService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,9 +13,12 @@ import java.security.Principal;
 public class OrderController {
     private final OrderService orders;
     private final CategoryService categories;
+    @Value("${google.maps.api-key:}")
+    private String googleMapsApiKey;
     public OrderController(OrderService orders, CategoryService categories) { this.orders=orders; this.categories=categories; }
     @GetMapping("/checkout") public String checkout(Model model) {
         model.addAttribute("categories", categories.getAvailableCategories());
+        model.addAttribute("googleMapsApiKey", googleMapsApiKey);
         return "user/checkout";
     }
     @PostMapping("/api/orders") @ResponseBody
