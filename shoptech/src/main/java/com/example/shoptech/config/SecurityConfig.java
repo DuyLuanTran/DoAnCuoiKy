@@ -108,7 +108,14 @@ public class SecurityConfig {
                                         response.setContentType("application/problem+json;charset=UTF-8");
                                         response.getWriter().write("{\"status\":401,\"detail\":\"Vui lòng đăng nhập.\"}");
                                     } else {
-                                        new LoginUrlAuthenticationEntryPoint("/login").commence(request,response,failure);
+                                        String uri = request.getRequestURI();
+                                        String contextPath = request.getContextPath();
+                                        String path = uri.substring(contextPath.length());
+                                        if (path.startsWith("/shop-registration")) {
+                                            response.sendRedirect(contextPath + "/login?redirect=/shop-registration");
+                                        } else {
+                                            new LoginUrlAuthenticationEntryPoint("/login").commence(request, response, failure);
+                                        }
                                     }
                                 }
                         )

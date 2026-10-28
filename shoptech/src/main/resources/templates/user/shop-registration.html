@@ -1,31 +1,561 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đăng ký shop | ShopTech</title>
-<th:block th:replace="~{fragments/commerce :: head}"></th:block>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
-<link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}">
-<style th:replace="~{user/store :: style}"></style><link rel="stylesheet" th:href="@{/user/css/checkout.css}">
-</head><body class="checkout-page">
-<th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
-<main class="container section checkout-main">
-    <h1>Đăng ký mở shop</h1>
-    <div class="alert alert-success" th:if="${success}" th:text="${success}" role="status"></div>
-    <div class="row"><div class="col-md-8">
-        <div th:if="${shop != null}" class="panel panel-default"><div class="panel-body">
-            <h2 style="font-size:20px" th:text="${shop.name}"></h2>
-            <p>Trạng thái: <strong th:text="${shop.status}"></strong></p>
-            <p th:if="${shop.status.name() == 'PENDING'}">Hồ sơ đang chờ Admin xét duyệt. Bạn vẫn có thể mua sắm bình thường.</p>
-            <p th:if="${shop.status.name() == 'REJECTED'}">Lý do từ chối: <span th:text="${shop.rejectionReason}"></span></p>
-            <p th:if="${shop.status.name() == 'SUSPENDED'}">Lý do khóa shop: <span th:text="${shop.suspensionReason}"></span></p>
-            <a class="primary-btn" th:if="${shop.status.name() == 'ACTIVE' or shop.status.name() == 'SUSPENDED'}" th:href="@{/seller}">Đến trang quản lý shop</a>
-        </div></div>
-        <form th:if="${shop == null or shop.status.name() == 'REJECTED'}" th:action="@{/shop-registration}" method="post" th:object="${shopForm}">
-            <th:block th:replace="~{fragments/shop-form :: fields}"></th:block>
-            <button class="primary-btn" type="submit" th:text="${shop == null} ? 'Gửi đăng ký' : 'Gửi lại hồ sơ'">Gửi đăng ký</button>
-        </form>
-    </div><aside class="col-md-4"><div class="checkout-order order-details">
-        <h2 style="font-size:20px">Bắt đầu bán hàng</h2>
-        <p>1. Điền thông tin shop và địa chỉ lấy hàng.</p><p>2. Gửi hồ sơ để Admin xét duyệt.</p><p>3. Quản lý shop sau khi được chấp thuận.</p>
-        <p>Mỗi tài khoản được đăng ký một shop.</p>
-        <a th:href="@{/products}">Tiếp tục mua sắm</a>
-    </div></aside></div>
-</main><th:block th:replace="~{fragments/commerce :: scripts}"></th:block></body></html>
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng ký shop | ShopTech</title>
+    <th:block th:replace="~{fragments/commerce :: head}"></th:block>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Montserrat:wght@500;700;800&display=swap">
+    <link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}">
+    <link rel="stylesheet" th:href="@{/user/css/style.css}">
+    <style th:replace="~{user/store :: style}"></style>
+    <link rel="stylesheet" th:href="@{/user/css/checkout.css}">
+    <style>
+        :root {
+            --sr-red: #d10024;
+            --sr-dark: #15161d;
+            --sr-blue: #2864dc;
+            --sr-amber: #d97706;
+            --sr-green: #15803d;
+            --sr-border: #e2e8f0;
+            --sr-bg: #f8fafc;
+        }
+        .shop-reg-page {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f4f6fa;
+            padding-bottom: 60px;
+        }
+        .shop-hero-header {
+            background: linear-gradient(135deg, #15161d 0%, #202636 100%);
+            color: #fff;
+            padding: 42px 0 36px 0;
+            margin-bottom: 34px;
+            border-bottom: 3px solid var(--sr-red);
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(209, 0, 36, 0.2);
+            color: #ff6b81;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+            border: 1px solid rgba(209, 0, 36, 0.3);
+        }
+        .shop-hero-header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 0 10px 0;
+        }
+        .shop-hero-header p {
+            color: #94a3b8;
+            font-size: 15px;
+            margin: 0;
+            max-width: 680px;
+            line-height: 1.6;
+        }
+        /* Step Process Bar */
+        .process-steps-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .process-step-item {
+            background: #fff;
+            padding: 18px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--sr-border);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: all 0.25s;
+        }
+        .step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #475569;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .process-step-item.active {
+            border-color: #fca5a5;
+            background: #fffafa;
+        }
+        .process-step-item.active .step-num {
+            background: var(--sr-red);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(209, 0, 36, 0.35);
+        }
+        .step-content h4 {
+            font-size: 13.5px;
+            font-weight: 800;
+            margin: 0 0 3px 0;
+            color: #1e293b;
+        }
+        .step-content span {
+            font-size: 12px;
+            color: #64748b;
+            display: block;
+        }
+        /* Form Card */
+        .shop-form-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 34px 30px;
+            border: 1px solid var(--sr-border);
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+            margin-bottom: 24px;
+        }
+        .card-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--sr-border);
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+        }
+        .card-header-bar h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0;
+            color: #0f172a;
+        }
+        .custom-fg {
+            margin-bottom: 20px;
+        }
+        .custom-label {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .label-icon {
+            color: var(--sr-blue);
+            font-size: 14px;
+        }
+        .custom-input, .custom-textarea {
+            border: 1.5px solid var(--sr-border);
+            border-radius: 8px;
+            font-size: 14px;
+            padding: 10px 14px;
+            color: #0f172a;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+        .custom-input {
+            height: 44px;
+        }
+        .custom-input:focus, .custom-textarea:focus {
+            border-color: var(--sr-red);
+            outline: none;
+            box-shadow: 0 0 0 3.5px rgba(209, 0, 36, 0.12);
+        }
+        .form-hint {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+        .seller-commitment-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin: 24px 0;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .commitment-icon {
+            color: #10b981;
+            font-size: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        .commitment-text strong {
+            font-size: 13.5px;
+            color: #0f172a;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .commitment-text p {
+            font-size: 12.5px;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .btn-submit-shop {
+            background: linear-gradient(135deg, #d10024 0%, #b8001f 100%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 16px rgba(209, 0, 36, 0.28);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn-submit-shop:hover {
+            background: linear-gradient(135deg, #ba0020 0%, #960019 100%);
+            box-shadow: 0 8px 22px rgba(209, 0, 36, 0.38);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+        /* Status Card Panels */
+        .status-panel-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 30px;
+            border: 1px solid var(--sr-border);
+            margin-bottom: 24px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        }
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--sr-border);
+            margin-bottom: 20px;
+        }
+        .status-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-badge-pending {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        .status-badge-active {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .status-badge-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        .status-badge-suspended {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .status-desc-box {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 22px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .status-desc-pending {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+        .status-desc-rejected {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+        .status-desc-active {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+        /* Sidebar Box */
+        .sidebar-perks-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 26px 22px;
+            border: 1px solid var(--sr-border);
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+            margin-bottom: 22px;
+        }
+        .sidebar-perks-box h3 {
+            font-size: 17px;
+            font-weight: 800;
+            margin: 0 0 16px 0;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .perk-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+        .perk-icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(40, 100, 220, 0.1);
+            color: var(--sr-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .perk-text strong {
+            display: block;
+            font-size: 13.5px;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+        .perk-text p {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .contact-support-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #fff;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+        }
+        .contact-support-card h4 {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+        }
+        .contact-support-card p {
+            color: #94a3b8;
+            font-size: 12.5px;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+        .contact-item i {
+            color: var(--sr-red);
+            font-size: 15px;
+        }
+        @media (max-width: 768px) {
+            .process-steps-bar {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .shop-form-card {
+                padding: 22px 18px;
+            }
+        }
+    </style>
+</head>
+<body class="shop-reg-page checkout-page">
+    <th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
+
+    <!-- Hero Header -->
+    <section class="shop-hero-header">
+        <div class="container">
+            <span class="hero-badge"><i class="fa fa-briefcase"></i> ShopTech Marketplace Partner</span>
+            <h1>Đăng ký mở shop</h1>
+            <p>Trở thành nhà bán hàng công nghệ cùng ShopTech để tiếp cận hàng triệu khách hàng yêu công nghệ trên toàn quốc. Khởi tạo gian hàng hoàn toàn miễn phí!</p>
+        </div>
+    </section>
+
+    <main class="container section checkout-main" style="padding-top: 0;">
+        <!-- Thông báo thành công từ flash attribute -->
+        <div class="alert alert-success" th:if="${success}" th:text="${success}" role="status"
+             style="border-radius: 10px; font-weight: 600; font-size: 14px; margin-bottom: 24px; padding: 14px 18px;"></div>
+
+        <!-- 3-Step Timeline -->
+        <div class="process-steps-bar">
+            <div class="process-step-item" th:classappend="${shop == null} ? 'active' : ''">
+                <div class="step-num"><i class="fa fa-pencil" th:if="${shop == null}"></i><span th:unless="${shop == null}">1</span></div>
+                <div class="step-content">
+                    <h4>1. Điền hồ sơ shop</h4>
+                    <span>Thông tin liên hệ & địa chỉ kho lấy hàng</span>
+                </div>
+            </div>
+            <div class="process-step-item" th:classappend="${shop != null and shop.status.name() == 'PENDING'} ? 'active' : ''">
+                <div class="step-num"><i class="fa fa-hourglass-half" th:if="${shop != null and shop.status.name() == 'PENDING'}"></i><span th:unless="${shop != null and shop.status.name() == 'PENDING'}">2</span></div>
+                <div class="step-content">
+                    <h4>2. Admin xét duyệt</h4>
+                    <span>Thẩm định hồ sơ trong vòng 24 giờ</span>
+                </div>
+            </div>
+            <div class="process-step-item" th:classappend="${shop != null and shop.status.name() == 'ACTIVE'} ? 'active' : ''">
+                <div class="step-num"><i class="fa fa-check" th:if="${shop != null and shop.status.name() == 'ACTIVE'}"></i><span th:unless="${shop != null and shop.status.name() == 'ACTIVE'}">3</span></div>
+                <div class="step-content">
+                    <h4>3. Bắt đầu kinh doanh</h4>
+                    <span>Quản lý shop tại Seller Center (/seller)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Cột nội dung chính -->
+            <div class="col-md-8">
+                <!-- TH1: Đã có hồ sơ gian hàng -->
+                <div th:if="${shop != null}" class="status-panel-card panel panel-default">
+                    <div class="status-header">
+                        <div>
+                            <span style="font-size: 13px; color: #64748b; font-weight: 600;">Gian hàng đã đăng ký:</span>
+                            <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 4px 0 0 0;" th:text="${shop.name}"></h2>
+                        </div>
+                        <div>
+                            <!-- Badge trạng thái: PENDING, ACTIVE, REJECTED, SUSPENDED -->
+                            <span th:if="${shop.status.name() == 'PENDING'}" class="status-badge-pill status-badge-pending">
+                                <i class="fa fa-clock-o"></i> <strong th:text="${shop.status}">PENDING</strong> - Đang chờ duyệt
+                            </span>
+                            <span th:if="${shop.status.name() == 'ACTIVE'}" class="status-badge-pill status-badge-active">
+                                <i class="fa fa-check-circle"></i> <strong th:text="${shop.status}">ACTIVE</strong> - Đã duyệt
+                            </span>
+                            <span th:if="${shop.status.name() == 'REJECTED'}" class="status-badge-pill status-badge-rejected">
+                                <i class="fa fa-times-circle"></i> <strong th:text="${shop.status}">REJECTED</strong> - Bị từ chối
+                            </span>
+                            <span th:if="${shop.status.name() == 'SUSPENDED'}" class="status-badge-pill status-badge-suspended">
+                                <i class="fa fa-ban"></i> <strong th:text="${shop.status}">SUSPENDED</strong> - Tạm khóa
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Mô tả trạng thái tương ứng -->
+                    <div th:if="${shop.status.name() == 'PENDING'}" class="status-desc-box status-desc-pending">
+                        <i class="fa fa-info-circle" style="font-size: 16px; margin-right: 6px;"></i>
+                        <strong>Hồ sơ đang được Quản trị viên thẩm định.</strong>
+                        <p style="margin: 6px 0 0 0;">Ban Quản trị ShopTech đang kiểm tra thông tin kho hàng và danh mục đăng ký. Bạn vẫn có thể mua sắm bình thường trong thời gian này.</p>
+                    </div>
+
+                    <div th:if="${shop.status.name() == 'ACTIVE'}" class="status-desc-box status-desc-active">
+                        <i class="fa fa-check-circle" style="font-size: 16px; margin-right: 6px;"></i>
+                        <strong>Chúc mừng! Gian hàng của bạn đã chính thức được kích hoạt.</strong>
+                        <p style="margin: 6px 0 16px 0;">Bạn có thể bắt đầu đăng bán các sản phẩm công nghệ, quản lý đơn hàng và theo dõi doanh thu.</p>
+                        <a class="primary-btn btn-submit-shop" th:href="@{/seller}">
+                            <i class="fa fa-dashboard"></i> Đến trang quản lý shop (Seller Center)
+                        </a>
+                    </div>
+
+                    <div th:if="${shop.status.name() == 'REJECTED'}" class="status-desc-box status-desc-rejected">
+                        <i class="fa fa-exclamation-circle" style="font-size: 16px; margin-right: 6px;"></i>
+                        <strong>Hồ sơ đăng ký shop chưa được chấp thuận.</strong>
+                        <p style="margin: 6px 0 0 0;">Lý do từ chối: <strong th:text="${shop.rejectionReason}"></strong></p>
+                        <p style="margin: 6px 0 0 0; font-size: 13px;">Bạn có thể chỉnh sửa thông tin bên dưới và gửi lại để Admin xem xét lại.</p>
+                    </div>
+
+                    <div th:if="${shop.status.name() == 'SUSPENDED'}" class="status-desc-box status-desc-rejected">
+                        <i class="fa fa-ban" style="font-size: 16px; margin-right: 6px;"></i>
+                        <strong>Gian hàng đang tạm thời bị khóa.</strong>
+                        <p style="margin: 6px 0 0 0;">Lý do khóa shop: <strong th:text="${shop.suspensionReason}"></strong></p>
+                        <a class="primary-btn btn-submit-shop" style="margin-top: 14px;" th:href="@{/seller}">Đến trang quản lý shop</a>
+                    </div>
+                </div>
+
+                <!-- Form đăng ký mới HOẶC gửi lại khi bị REJECTED -->
+                <div th:if="${shop == null or shop.status.name() == 'REJECTED'}" class="shop-form-card">
+                    <div class="card-header-bar">
+                        <h2>
+                            <i class="fa fa-edit text-danger" style="margin-right: 8px;"></i>
+                            <span th:text="${shop == null} ? 'Thông tin đăng ký gian hàng mới' : 'Cập nhật lại hồ sơ đăng ký'">Thông tin đăng ký gian hàng mới</span>
+                        </h2>
+                        <span class="badge" style="background: #e2e8f0; color: #475569; font-size: 12px; padding: 6px 10px;">Bước 1 / 3</span>
+                    </div>
+
+                    <form th:action="@{/shop-registration}" method="post" th:object="${shopForm}">
+                        <th:block th:replace="~{fragments/shop-form :: fields}"></th:block>
+                        <button class="primary-btn btn-submit-shop" type="submit">
+                            <i class="fa fa-paper-plane"></i>
+                            <span th:text="${shop == null} ? 'Gửi đăng ký mở shop' : 'Gửi lại hồ sơ xét duyệt'">Gửi đăng ký</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cột bên phải: Lợi ích & Hỗ trợ -->
+            <aside class="col-md-4">
+                <div class="sidebar-perks-box checkout-order order-details">
+                    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 16px 0;">Bắt đầu bán hàng</h2>
+                    <div class="perk-item">
+                        <div class="perk-icon-circle"><i class="fa fa-pencil"></i></div>
+                        <div class="perk-text">
+                            <strong>1. Điền thông tin shop</strong>
+                            <p>Cung cấp tên thương hiệu, hotline và địa chỉ kho lấy hàng.</p>
+                        </div>
+                    </div>
+                    <div class="perk-item">
+                        <div class="perk-icon-circle"><i class="fa fa-shield"></i></div>
+                        <div class="perk-text">
+                            <strong>2. Admin thẩm định</strong>
+                            <p>Hồ sơ sẽ được ban quản trị xét duyệt trong vòng 24 giờ.</p>
+                        </div>
+                    </div>
+                    <div class="perk-item">
+                        <div class="perk-icon-circle"><i class="fa fa-rocket"></i></div>
+                        <div class="perk-text">
+                            <strong>3. Quản lý gian hàng</strong>
+                            <p>Đăng sản phẩm, theo dõi đơn và quản lý doanh thu tại /seller.</p>
+                        </div>
+                    </div>
+                    <hr style="margin: 16px 0; border-color: #f1f5f9;">
+                    <p style="font-size: 12.5px; color: #64748b; margin-bottom: 12px;">Mỗi tài khoản được đăng ký một shop bán hàng.</p>
+                    <a th:href="@{/products}" class="btn btn-default btn-block" style="border-radius: 8px; font-weight: 700; font-size: 13px;">
+                        <i class="fa fa-shopping-cart"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+
+                <!-- Box liên hệ đối tác -->
+                <div class="contact-support-card">
+                    <h4><i class="fa fa-headphones" style="color: #ff6b81; margin-right: 6px;"></i> Hỗ trợ Đối tác Người bán</h4>
+                    <p>Bạn cần tư vấn chi tiết về quy trình hợp tác, phí sàn hoặc hỗ trợ nhập hàng sỉ số lượng lớn?</p>
+                    <div class="contact-item">
+                        <i class="fa fa-phone"></i>
+                        <span>Hotline: <strong>1900-8888 (Phím 2)</strong></span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fa fa-envelope"></i>
+                        <span>Email: <strong>partner@shoptech.vn</strong></span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/commerce :: scripts}"></th:block>
+</body>
+</html>
