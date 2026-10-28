@@ -98,6 +98,9 @@ public class AuthController {
         return userService.findByUsername(authentication.getName())
                 .map(user -> {
                     model.addAttribute("account", user);
+                    boolean admin = user.getRoles().stream().anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
+                    boolean seller = user.getRoles().stream().anyMatch(role -> "ROLE_SELLER".equals(role.getName()));
+                    model.addAttribute("accountRole", admin ? "Quản trị viên" : seller ? "Người bán" : "Khách hàng");
                     model.addAttribute("categories", categoryService.getAvailableCategories());
                     return "user/account";
                 })

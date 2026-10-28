@@ -15,9 +15,9 @@
 <body class="account-page">
 <th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
 <main class="container" style="padding-top: 40px; padding-bottom: 60px;">
-    <div class="section-title"><h3 class="title">Thông tin tài khoản</h3></div>
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
+            <div class="section-title"><h3 class="title">Thông tin tài khoản</h3></div>
             <div class="billing-details">
                 <div class="section-title"><h4 class="title">Thông tin cá nhân</h4></div>
                 <p><strong>Họ và tên:</strong> <span th:text="${account.fullName}"></span></p>
@@ -25,9 +25,7 @@
                 <p><strong>Email:</strong> <span th:text="${account.email}"></span></p>
                 <p><strong>Số điện thoại:</strong> <span th:text="${account.phoneNumber != null ? account.phoneNumber : 'Chưa cập nhật'}"></span></p>
                 <p><strong>Địa chỉ:</strong> <span th:text="${account.address != null ? account.address : 'Chưa cập nhật'}"></span></p>
-                <p><strong>Vai trò:</strong>
-                    <span th:each="role : ${account.roles}" th:text="${role.name == 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng'}"></span>
-                </p>
+                <p><strong>Vai trò:</strong> <span th:text="${accountRole}"></span></p>
                 <a class="primary-btn" th:href="@{/products}">Tiếp tục mua sắm</a>
                 <a class="primary-btn" th:href="@{/shop-registration}">Shop của tôi</a>
                 <a sec:authorize="hasRole('ADMIN')" class="primary-btn" th:href="@{/admin/users}">Quản trị</a>
