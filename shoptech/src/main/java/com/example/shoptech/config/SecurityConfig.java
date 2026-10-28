@@ -140,7 +140,7 @@ public class SecurityConfig {
                                 )
                         )
                         .logoutSuccessHandler((request, response, authentication) ->
-                                response.sendRedirect("/login?logout")
+                                response.sendRedirect(request.getContextPath() + "/")
                         )
                         .permitAll()
                 )

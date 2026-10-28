@@ -233,9 +233,11 @@ class CommerceIntegrationTest {
         assertTrue(cookie.contains("HttpOnly"));assertTrue(cookie.contains("SameSite=Lax"));
         jakarta.servlet.http.Cookie auth=new jakarta.servlet.http.Cookie("SHOPTECH_AUTH",cookie.substring("SHOPTECH_AUTH=".length(),cookie.indexOf(';')));
         mvc.perform(get("/cart").cookie(auth)).andExpect(status().isOk());
-        mvc.perform(post("/logout").cookie(auth).with(csrf())).andExpect(status().is3xxRedirection()).andExpect(header().string("Location","/login?logout"));
+        mvc.perform(post("/logout").cookie(auth).with(csrf())).andExpect(status().is3xxRedirection()).andExpect(header().string("Location","/"));
         mvc.perform(get("/cart")).andExpect(status().is3xxRedirection());
-        mvc.perform(get("/")).andExpect(status().isOk());mvc.perform(get("/login")).andExpect(status().isOk());
+        mvc.perform(get("/")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Đăng nhập")));
+        mvc.perform(get("/login")).andExpect(status().isOk());
     }
     @Test @WithMockUser(roles="ADMIN") void existingAdminPagesRegression() throws Exception {
         User bob=users.findByUsernameAndIsDeletedFalse("bob").orElseThrow();
