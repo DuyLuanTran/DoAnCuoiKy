@@ -7,6 +7,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="_csrf" th:content="${_csrf.token}"><meta name="_csrf_header" th:content="${_csrf.headerName}">
 
     <title th:text="${pageTitle} + ' | ShopTech'">ShopTech</title>
 
@@ -28,26 +29,47 @@
         <li class="nav-item">
           <a
             class="sidebar-brand d-flex align-items-center justify-content-center"
-            th:href="@{/admin}"
+            th:href="${sellerArea == true} ? @{/seller} : @{/admin}"
           >
             <div class="sidebar-brand-icon">
               <i class="fas fa-store" aria-hidden="true"></i>
             </div>
-            <div class="sidebar-brand-text mx-3">ShopTech <sup>Admin</sup></div>
+            <div class="sidebar-brand-text mx-3">ShopTech <sup th:text="${sellerArea == true} ? 'Seller' : 'Admin'">Admin</sup></div>
           </a>
         </li>
 
+        <li class="nav-item" th:classappend="${activeMenu == 'reviews'} ? 'active'"><a class="nav-link" th:href="${sellerArea == true} ? @{/seller/reviews} : @{/admin/reviews}"><i class="fas fa-fw fa-star" aria-hidden="true"></i><span>Đánh giá sản phẩm</span></a></li>
         <li
           class="nav-item"
           th:classappend="${activeMenu == 'dashboard'} ? 'active'"
         >
-          <a class="nav-link" th:href="@{/admin}">
+          <a class="nav-link" th:href="${sellerArea == true} ? @{/seller} : @{/admin}">
             <i class="fas fa-fw fa-tachometer-alt" aria-hidden="true"></i>
             <span>Tổng quan</span>
           </a>
         </li>
 
-        <li class="nav-item"><a class="nav-link" th:href="@{/admin/orders}">Đơn hàng</a></li><li class="nav-item"><a class="nav-link" th:href="@{/admin/revenue}">Doanh thu</a></li>
+        <li class="nav-item" th:if="${sellerArea == true}" th:classappend="${activeMenu == 'shop'} ? 'active'">
+          <a class="nav-link" th:href="@{/seller/shop}"><i class="fas fa-fw fa-store"></i><span>Thông tin shop</span></a>
+        </li>
+        <li class="nav-item" th:if="${sellerArea == true and shop != null and shop.status.name() == 'ACTIVE'}">
+          <a class="nav-link" th:href="@{/shops/{slug}(slug=${shop.slug})}"><i class="fas fa-fw fa-external-link-alt" aria-hidden="true"></i><span>Xem trang shop</span></a>
+        </li>
+        <li class="nav-item" th:if="${sellerArea == true}" th:classappend="${activeMenu == 'products'} ? 'active'">
+          <a class="nav-link" th:href="@{/seller/products}"><i class="fas fa-fw fa-box"></i><span>Sản phẩm của shop</span></a>
+        </li>
+        <li class="nav-item" th:if="${sellerArea == true}" th:classappend="${activeMenu == 'orders'} ? 'active'">
+          <a class="nav-link" th:href="@{/seller/orders}"><i class="fas fa-fw fa-clipboard-list" aria-hidden="true"></i><span>Đơn hàng của shop</span></a>
+        </li>
+        <li class="nav-item" th:if="${sellerArea == true}" th:classappend="${activeMenu == 'revenue'} ? 'active'">
+          <a class="nav-link" th:href="@{/seller/revenue}"><i class="fas fa-fw fa-chart-line" aria-hidden="true"></i><span>Doanh thu của shop</span></a>
+        </li>
+        <th:block th:if="${sellerArea != true}">
+        <li class="nav-item" th:classappend="${activeMenu == 'shops'} ? 'active'">
+          <a class="nav-link" th:href="@{/admin/shops}"><i class="fas fa-fw fa-store"></i><span>Quản lý shop</span></a>
+        </li>
+        <li class="nav-item" th:classappend="${activeMenu == 'orders'} ? 'active'"><a class="nav-link" th:href="@{/admin/orders}"><i class="fas fa-fw fa-clipboard-list" aria-hidden="true"></i><span>Đơn hàng toàn sàn</span></a></li>
+        <li class="nav-item" th:classappend="${activeMenu == 'revenue'} ? 'active'"><a class="nav-link" th:href="@{/admin/revenue}"><i class="fas fa-fw fa-chart-line" aria-hidden="true"></i><span>Thống kê toàn sàn</span></a></li>
 <li class="nav-item">
           <div class="sidebar-heading mt-3">Quản lý</div>
         </li>
@@ -77,7 +99,7 @@
         >
           <a class="nav-link" th:href="@{/admin/products}">
             <i class="fas fa-fw fa-box" aria-hidden="true"></i>
-            <span>Quản lý sản phẩm</span>
+            <span>Giám sát sản phẩm</span>
           </a>
         </li>
         <li
@@ -89,6 +111,8 @@
             <span>Thùng rác người dùng</span>
           </a>
         </li>
+
+        </th:block>
 
         <li class="nav-item">
           <a class="nav-link" th:href="@{/account}">
@@ -123,7 +147,7 @@
 
             <p class="text-center mb-2">
               <strong>ShopTech</strong><br />
-              Khu vực quản trị hệ thống
+              <span th:text="${sellerArea == true} ? 'Khu vực quản lý shop' : 'Khu vực quản trị toàn sàn'">Khu vực quản trị toàn sàn</span>
             </p>
           </div>
         </li>
@@ -146,7 +170,7 @@
             </button>
 
             <span class="font-weight-bold text-primary">
-              Quản trị ShopTech
+              <span th:text="${sellerArea == true} ? 'Quản lý shop' : 'Quản trị toàn sàn ShopTech'">Quản trị toàn sàn ShopTech</span>
             </span>
 
             <ul class="navbar-nav ml-auto">
@@ -229,7 +253,7 @@
         <footer class="sticky-footer bg-white">
           <div class="container my-auto">
             <div class="copyright text-center my-auto">
-              <span>ShopTech — Quản trị hệ thống</span>
+              <span th:text="${sellerArea == true} ? 'ShopTech — Quản lý shop' : 'ShopTech — Quản trị toàn sàn'">ShopTech — Quản trị toàn sàn</span>
             </div>
           </div>
         </footer>

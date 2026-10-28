@@ -2,9 +2,10 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Tổng quan','dashboard',~{::main})}">
 <body><main><h1>Quản trị ShopTech</h1><p>Chọn chức năng quản trị. Số liệu doanh thu thực tế nằm trong trang Thống kê doanh thu.</p>
 <div class="row">
-<div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Đơn hàng</h2><p>Tìm kiếm đơn và cập nhật trạng thái.</p><a class="btn btn-primary" th:href="@{/admin/orders}">Quản lý đơn hàng</a></div></div></div>
+<div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Các shop trên sàn</h2><p>Duyệt đăng ký, quản lý trạng thái và chiết khấu.</p><a class="btn btn-primary" th:href="@{/admin/shops}">Quản lý shop</a></div></div></div>
+<div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Đơn hàng</h2><p>Giám sát đơn hàng và tiến độ xử lý của từng shop.</p><a class="btn btn-primary" th:href="@{/admin/orders}">Đơn hàng toàn sàn</a></div></div></div>
 <div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Doanh thu</h2><p>Doanh thu theo ngày, tháng từ đơn hoàn tất.</p><a class="btn btn-primary" th:href="@{/admin/revenue}">Thống kê doanh thu</a></div></div></div>
 <div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Người dùng</h2><p>Quản lý tài khoản, trạng thái và các tài khoản đã xóa.</p><a class="btn btn-outline-primary mr-2" th:href="@{/admin/users}">Quản lý người dùng</a><a class="btn btn-outline-secondary" th:href="@{/admin/users/trash}">Thùng rác người dùng</a></div></div></div>
 <div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Danh mục</h2><a class="btn btn-outline-primary" th:href="@{/admin/categories}">Quản lý danh mục</a></div></div></div>
-<div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Sản phẩm</h2><a class="btn btn-outline-primary" th:href="@{/admin/products}">Quản lý sản phẩm</a></div></div></div>
+<div class="col-md-6 col-xl-4 mb-3"><div class="card h-100"><div class="card-body"><h2 class="h5">Sản phẩm</h2><a class="btn btn-outline-primary" th:href="@{/admin/products}">Giám sát sản phẩm</a></div></div></div>
 </div></main></body></html>

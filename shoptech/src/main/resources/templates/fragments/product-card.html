@@ -1,0 +1,16 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><body>
+<div class="product" th:fragment="card(product,sold)">
+ <button class="favorite-button favorite-card" type="button" th:attr="data-favorite=${product.id}" aria-label="Thêm vào yêu thích" aria-pressed="false"><i class="fa fa-heart-o" aria-hidden="true"></i></button>
+ <div class="product-img"><a th:href="@{/products/{slug}(slug=${product.slug})}"><img th:if="${!#strings.isEmpty(product.mainImage)}" th:src="${product.mainImage}" th:alt="${product.name}" loading="lazy"><span class="text-muted" th:if="${#strings.isEmpty(product.mainImage)}">Chưa có ảnh</span></a><div class="product-label" th:if="${product.discountPrice != null}"><span class="sale">Giảm giá</span></div></div>
+ <div class="product-body">
+  <p class="product-shop"><a th:href="@{/shops/{slug}(slug=${product.shop.slug})}" th:title="${product.shop.name}"><i class="fa fa-shopping-bag" aria-hidden="true"></i> <span th:text="${product.shop.name}"></span></a></p>
+  <p class="product-category" th:text="${product.category.name}"></p>
+  <h3 class="product-name"><a th:href="@{/products/{slug}(slug=${product.slug})}" th:text="${product.name}" th:title="${product.name}"></a></h3>
+  <h4 class="product-price"><span th:text="${#numbers.formatDecimal(product.discountPrice != null ? product.discountPrice : product.price,1,'POINT',0,'COMMA')}+' ₫'"></span><del class="product-old-price" th:if="${product.discountPrice != null}" th:text="${#numbers.formatDecimal(product.price,1,'POINT',0,'COMMA')}+' ₫'"></del></h4>
+  <p class="community-rating" th:attr="data-rating-product=${product.id}"></p>
+  <p class="product-stock" th:classappend="${product.stockQuantity > 0} ? 'text-success' : 'text-danger'" th:text="${product.stockQuantity > 0} ? 'Còn hàng' : 'Hết hàng'"></p>
+  <p class="product-sold" th:if="${sold != null}"><span th:if="${sold > 0}" th:text="'Đã bán '+${sold}"></span></p>
+  <div class="product-btns"><a th:href="@{/products/{slug}(slug=${product.slug})}"><i class="fa fa-eye" aria-hidden="true"></i> Xem chi tiết</a></div>
+ </div>
+</div>
+</body></html>

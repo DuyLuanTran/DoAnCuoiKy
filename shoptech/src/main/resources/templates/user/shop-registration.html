@@ -1,0 +1,31 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đăng ký shop | ShopTech</title>
+<th:block th:replace="~{fragments/commerce :: head}"></th:block>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700">
+<link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}">
+<style th:replace="~{user/store :: style}"></style><link rel="stylesheet" th:href="@{/user/css/checkout.css}">
+</head><body class="checkout-page">
+<th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
+<main class="container section checkout-main">
+    <h1>Đăng ký mở shop</h1>
+    <div class="alert alert-success" th:if="${success}" th:text="${success}" role="status"></div>
+    <div class="row"><div class="col-md-8">
+        <div th:if="${shop != null}" class="panel panel-default"><div class="panel-body">
+            <h2 style="font-size:20px" th:text="${shop.name}"></h2>
+            <p>Trạng thái: <strong th:text="${shop.status}"></strong></p>
+            <p th:if="${shop.status.name() == 'PENDING'}">Hồ sơ đang chờ Admin xét duyệt. Bạn vẫn có thể mua sắm bình thường.</p>
+            <p th:if="${shop.status.name() == 'REJECTED'}">Lý do từ chối: <span th:text="${shop.rejectionReason}"></span></p>
+            <p th:if="${shop.status.name() == 'SUSPENDED'}">Lý do khóa shop: <span th:text="${shop.suspensionReason}"></span></p>
+            <a class="primary-btn" th:if="${shop.status.name() == 'ACTIVE' or shop.status.name() == 'SUSPENDED'}" th:href="@{/seller}">Đến trang quản lý shop</a>
+        </div></div>
+        <form th:if="${shop == null or shop.status.name() == 'REJECTED'}" th:action="@{/shop-registration}" method="post" th:object="${shopForm}">
+            <th:block th:replace="~{fragments/shop-form :: fields}"></th:block>
+            <button class="primary-btn" type="submit" th:text="${shop == null} ? 'Gửi đăng ký' : 'Gửi lại hồ sơ'">Gửi đăng ký</button>
+        </form>
+    </div><aside class="col-md-4"><div class="checkout-order order-details">
+        <h2 style="font-size:20px">Bắt đầu bán hàng</h2>
+        <p>1. Điền thông tin shop và địa chỉ lấy hàng.</p><p>2. Gửi hồ sơ để Admin xét duyệt.</p><p>3. Quản lý shop sau khi được chấp thuận.</p>
+        <p>Mỗi tài khoản được đăng ký một shop.</p>
+        <a th:href="@{/products}">Tiếp tục mua sắm</a>
+    </div></aside></div>
+</main><th:block th:replace="~{fragments/commerce :: scripts}"></th:block></body></html>

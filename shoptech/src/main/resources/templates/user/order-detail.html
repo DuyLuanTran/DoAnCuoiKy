@@ -39,6 +39,10 @@
                 <strong id="order-status" class="order-detail-status" th:attr="data-order-id=${order.id}" th:text="${order.status}"></strong>
             </p>
         </div>
+        <div th:if="${shopOrders != null}" class="order-shipping" style="margin-bottom:24px">
+            <h2>Đơn theo shop</h2>
+            <div th:each="s : ${shopOrders}" style="padding:10px 0;border-bottom:1px solid #e4e7ed"><strong th:text="${s.shopName}"></strong><span th:text="' · '+${s.status}+' · '+${s.paymentStatus}"></span><p style="margin:5px 0" th:text="${s.code}+' — '+${#numbers.formatDecimal(s.total,1,'POINT',0,'COMMA')}+' ₫'"></p></div>
+        </div>
         <div class="order-detail-layout">
             <div class="order-detail-main">
                 <section class="order-shipping" aria-label="Thông tin giao hàng">
@@ -68,7 +72,7 @@
                 </section>
             </div>
             <aside class="order-detail-summary" aria-label="Tóm tắt đơn hàng">
-                <h2>Tóm tắt đơn hàng</h2>
+                <h2>Tóm tắt đơn hàng</h2><p class="small">Tổng bên dưới không gồm phần hàng đã CANCELLED hoặc REFUNDED.</p>
                 <div class="order-cost-line"><span>Tiền hàng</span><strong th:text="${#numbers.formatDecimal(order.subtotal,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
                 <div class="order-cost-line"><span>Phí giao hàng</span><strong th:text="${#numbers.formatDecimal(order.shippingFee,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>
                 <div class="order-total-line"><span>Tổng tiền</span><strong th:text="${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')} + ' ₫'"></strong></div>

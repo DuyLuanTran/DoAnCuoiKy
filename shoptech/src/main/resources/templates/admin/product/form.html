@@ -20,7 +20,7 @@
       >
         <h1 class="h3 mb-2 text-gray-800" th:text="${formTitle}">Sản phẩm</h1>
 
-        <a class="btn btn-outline-secondary mb-2" th:href="@{/admin/products}">
+        <a class="btn btn-outline-secondary mb-2" th:href="@{/seller/products}">
           Quay lại danh sách
         </a>
       </div>
@@ -58,9 +58,12 @@
             >
               Chưa có danh mục khả dụng. Bạn cần tạo hoặc bật danh mục trước khi
               thêm sản phẩm.
-              <a th:href="@{/admin/categories}"> Quản lý danh mục </a>
+              <span> Vui lòng liên hệ Admin toàn sàn để bổ sung danh mục. </span>
             </div>
 
+            <div class="alert alert-warning" th:if="${moderationReason}">Sản phẩm đang bị sàn tạm ẩn: <span th:text="${moderationReason}"></span>. Việc sửa sản phẩm không tự gỡ trạng thái này.</div>
+            <div class="alert alert-warning" th:if="${shop.status.name() != 'ACTIVE'}">Shop đang bị khóa hoặc chưa hoạt động; bạn chưa thể lưu thay đổi.</div>
+            <fieldset th:disabled="${shop.status.name() != 'ACTIVE'}">
             <div class="row">
               <div class="col-lg-8">
                 <div class="form-group">
@@ -338,7 +341,7 @@
             <div class="d-flex flex-wrap justify-content-end border-top pt-3">
               <a
                 class="btn btn-outline-secondary mr-2 mb-2"
-                th:href="@{/admin/products}"
+                th:href="@{/seller/products}"
               >
                 Hủy
               </a>
@@ -354,6 +357,7 @@
                 Lưu
               </button>
             </div>
+            </fieldset>
           </form>
         </div>
       </div>

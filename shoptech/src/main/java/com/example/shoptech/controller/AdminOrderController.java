@@ -16,7 +16,7 @@ public class AdminOrderController {
         model.addAttribute("orders",orders.search(keyword,status,page)); model.addAttribute("keyword",keyword); model.addAttribute("status",status); model.addAttribute("statuses",OrderStatus.values()); return "admin/orders";
     }
     @GetMapping("/{id}") public String detail(@PathVariable Long id,Model model) {
-        OrderDto order=orders.get(id); model.addAttribute("order",order); model.addAttribute("nextStatuses",AdminOrderService.allowed(order.status())); return "admin/order-detail";
+        OrderDto order=orders.get(id); model.addAttribute("order",order); model.addAttribute("shopOrders",orders.groups(id)); return "admin/order-detail";
     }
     @PatchMapping("/{id}/status") @ResponseBody
     public OrderDto update(@PathVariable Long id,@Valid @RequestBody OrderDto.Transition input) { return orders.transition(id,input); }

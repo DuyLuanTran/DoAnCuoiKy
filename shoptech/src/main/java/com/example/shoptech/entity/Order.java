@@ -28,6 +28,8 @@ public class Order {
     @Column(name = "updated_at") private OffsetDateTime updatedAt;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL) @OrderBy("id ASC")
     private List<OrderDetail> details = new ArrayList<>();
+    @OneToMany(mappedBy="order",cascade=CascadeType.ALL) @OrderBy("id ASC")
+    private List<ShopOrder> shopOrders = new ArrayList<>();
     @PrePersist void create() { createdAt = updatedAt = OffsetDateTime.now(); }
     @PreUpdate void update() { updatedAt = OffsetDateTime.now(); }
 }

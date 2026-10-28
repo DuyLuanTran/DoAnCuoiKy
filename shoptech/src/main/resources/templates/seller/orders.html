@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Đơn hàng của shop','orders',~{::main})}"><body><main>
+<h1 class="h3 mb-2 text-gray-800">Đơn hàng của shop</h1><p class="mb-4" th:text="${shop.name}"></p>
+<div class="alert alert-warning" th:if="${shop.status.name() == 'SUSPENDED'}">Shop đang bị đình chỉ bán hàng. Bạn vẫn có thể xử lý các đơn đã nhận.</div>
+<div class="card shadow mb-4"><div class="card-body"><form method="get" th:action="@{/seller/orders}" class="form-inline mb-4">
+<input class="form-control mr-2 mb-2" name="keyword" th:value="${keyword}" maxlength="100" placeholder="Mã đơn / khách hàng" aria-label="Tìm đơn hàng">
+<select class="form-control mr-2 mb-2" name="status" aria-label="Trạng thái"><option value="">Tất cả trạng thái</option><option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option></select><button class="btn btn-primary mb-2">Tìm kiếm</button></form>
+<p th:if="${orders.empty}">Không có đơn hàng phù hợp.</p><div class="table-responsive"><table class="table table-bordered"><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Người nhận</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody>
+<tr th:each="order : ${orders}"><td><a th:href="@{/seller/orders/{id}(id=${order.id})}" th:text="${order.code}"></a></td><td th:text="${order.customer}"></td><td th:text="${order.recipientName}"></td><td th:text="${#temporals.format(order.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')),'dd/MM/yyyy HH:mm')}"></td><td class="text-nowrap" th:text="${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')}+' ₫'"></td><td><span class="badge badge-light border" th:text="${order.status}"></span></td></tr></tbody></table></div>
+<nav class="d-flex justify-content-between"><a th:if="${orders.hasPrevious()}" th:href="@{/seller/orders(keyword=${keyword},status=${status},page=${orders.number-1})}">Trang trước</a><span th:text="'Trang '+${orders.number+1}"></span><a th:if="${orders.hasNext()}" th:href="@{/seller/orders(keyword=${keyword},status=${status},page=${orders.number+1})}">Trang sau</a></nav></div></div>
+</main></body></html>

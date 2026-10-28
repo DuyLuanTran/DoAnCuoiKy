@@ -81,6 +81,10 @@ public class CartService {
         return price;
     }
     static void validateProduct(Product p, long quantity) {
+        if (Boolean.TRUE.equals(p.getIsBlocked()) || p.getShop() == null
+                || p.getShop().getStatus() != ShopStatus.ACTIVE || p.getShop().getOwner() == null
+                || !Boolean.TRUE.equals(p.getShop().getOwner().getIsActive()) || Boolean.TRUE.equals(p.getShop().getOwner().getIsDeleted()))
+            throw error(HttpStatus.CONFLICT, "Sản phẩm hoặc shop đã ngừng kinh doanh.");
         if (!Boolean.TRUE.equals(p.getIsActive()) || Boolean.TRUE.equals(p.getIsDeleted()) || p.getCategory() == null
                 || !Boolean.TRUE.equals(p.getCategory().getIsActive()) || Boolean.TRUE.equals(p.getCategory().getIsDeleted()))
             throw error(HttpStatus.CONFLICT, "Sản phẩm đã ngừng kinh doanh.");

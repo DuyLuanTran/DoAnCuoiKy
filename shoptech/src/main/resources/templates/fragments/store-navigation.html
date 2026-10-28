@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"><body>
+<nav id="navigation" aria-label="Điều hướng cửa hàng"
+     th:fragment="navigation(section)"
+     th:with="navCategory=${categoryId},navBase=${catalogBase ?: '/products'},navKeyword=${keyword ?: ''},navSort=${sort ?: 'newest'},navSize=${pageSize ?: 12},navMinSold=${minSold ?: 0},navInStock=${inStock == true},navOnSale=${onSale == true}">
+    <div class="container">
+        <div id="responsive-nav">
+            <ul class="main-nav nav navbar-nav">
+                <li th:classappend="${section == 'home'} ? 'active'">
+                    <a th:href="@{/}" th:attr="aria-current=${section == 'home' ? 'page' : null}">Trang chủ</a>
+                </li>
+                <li th:classappend="${section == 'products' and navCategory == null} ? 'active'">
+                    <a th:href="${section == 'products'} ? @{${navBase}(shopId=${shopId},minSold=${navMinSold},keyword=${navKeyword},minPrice=${minPrice},maxPrice=${maxPrice},inStock=${navInStock},onSale=${navOnSale},sort=${navSort},size=${navSize})} : @{/products}"
+                       th:attr="aria-current=${section == 'products' and navCategory == null ? 'page' : null}">Tất cả sản phẩm</a>
+                </li>
+                <li th:classappend="${section == 'shops'} ? 'active'">
+                    <a th:href="@{/shops}" th:attr="aria-current=${section == 'shops' ? 'page' : null}">Các shop</a>
+                </li>
+                <li th:each="category : ${categories}"
+                    th:classappend="${section == 'products' and category.id == navCategory} ? 'active'">
+                    <a th:href="${section == 'products'} ? @{${navBase}(shopId=${shopId},minSold=${navMinSold},categoryId=${category.id},keyword=${navKeyword},minPrice=${minPrice},maxPrice=${maxPrice},inStock=${navInStock},onSale=${navOnSale},sort=${navSort},size=${navSize})} : @{/products(categoryId=${category.id})}"
+                       th:text="${category.name}"
+                       th:attr="aria-current=${section == 'products' and category.id == navCategory ? 'page' : null}"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+</body></html>
