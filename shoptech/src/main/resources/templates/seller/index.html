@@ -1,0 +1,7 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Tổng quan shop','dashboard',~{::main})}"><body><main>
+<h1 class="h3 mb-4 text-gray-800">Shop của bạn</h1>
+<div class="alert alert-warning" th:if="${shop.status.name() != 'ACTIVE'}">Shop chưa hoạt động hoặc đang bị khóa. <span th:text="${shop.suspensionReason}"></span></div>
+<div class="row"><div class="col-lg-8"><div class="card shadow mb-4"><div class="card-header"><h2 class="h6 m-0 font-weight-bold text-primary" th:text="${shop.name}"></h2></div><div class="card-body">
+<dl class="row"><dt class="col-sm-4">Trạng thái</dt><dd class="col-sm-8"><span class="badge badge-light border" th:text="${shop.status}"></span></dd><dt class="col-sm-4">Email</dt><dd class="col-sm-8" th:text="${shop.email}"></dd><dt class="col-sm-4">Điện thoại</dt><dd class="col-sm-8" th:text="${shop.phone}"></dd><dt class="col-sm-4">Địa chỉ lấy hàng</dt><dd class="col-sm-8" th:text="${shop.address}"></dd><dt class="col-sm-4">Giới thiệu</dt><dd class="col-sm-8" style="white-space:pre-wrap;overflow-wrap:anywhere" th:text="${shop.description}"></dd></dl>
+</div></div></div><div class="col-lg-4"><div class="card border-left-primary shadow mb-4"><div class="card-body"><h2 class="h6 text-primary font-weight-bold">Chiết khấu áp dụng</h2><p class="h3 font-weight-bold text-gray-800" th:text="${effectiveRate} + '%'"></p><p class="text-muted mb-0">Mức do Admin toàn sàn cấu hình cho shop.</p></div></div></div></div>
+</main></body></html>

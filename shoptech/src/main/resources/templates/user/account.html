@@ -29,6 +29,7 @@
                     <span th:each="role : ${account.roles}" th:text="${role.name == 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng'}"></span>
                 </p>
                 <a class="primary-btn" th:href="@{/products}">Tiếp tục mua sắm</a>
+                <a class="primary-btn" th:href="@{/shop-registration}">Shop của tôi</a>
                 <a sec:authorize="hasRole('ADMIN')" class="primary-btn" th:href="@{/admin/users}">Quản trị</a>
             </div>
         </div>

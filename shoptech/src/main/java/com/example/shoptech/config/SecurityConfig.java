@@ -89,7 +89,9 @@ public class SecurityConfig {
                                 "/reset-password"
                         ).permitAll()
                         .requestMatchers("/api/cart/**", "/api/cart", "/cart", "/checkout", "/orders/**", "/api/orders/**", "/ws/**").authenticated()
-                        .requestMatchers("/account").authenticated()
+                        .requestMatchers("/account", "/favorites", "/api/favorites/**", "/api/reviews/**").authenticated()
+                        .requestMatchers("/shop-registration", "/shop-registration/**").authenticated()
+                        .requestMatchers("/seller/**", "/seller").hasRole("SELLER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").authenticated()
                         .anyRequest().permitAll()

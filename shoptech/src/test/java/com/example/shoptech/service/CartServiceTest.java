@@ -23,6 +23,7 @@ class CartServiceTest {
         cart = new Cart(); cart.setId(2L); cart.setUserId(1L);
         Category category = new Category(); category.setIsActive(true); category.setIsDeleted(false);
         product = new Product(); product.setName("Test"); product.setCategory(category); product.setPrice(new BigDecimal("100")); product.setStockQuantity(5);
+        Shop shop=new Shop();shop.setStatus(ShopStatus.ACTIVE);shop.setOwner(user);product.setShop(shop);
         item = new CartItem(); item.setId(3L); item.setCartId(2L); item.setProduct(product); item.setQuantity(1);
     }
     void owner() { when(users.lockActiveByUsername("alice")).thenReturn(Optional.of(user)); when(carts.findByUserId(1L)).thenReturn(Optional.of(cart)); }

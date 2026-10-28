@@ -1,0 +1,23 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Quản lý shop','shops',~{::main})}"><body><main>
+<div class="d-sm-flex align-items-center justify-content-between mb-4"><div><h1 class="h3 mb-1 text-gray-800">Quản lý shop</h1><p class="mb-0">Xét duyệt đăng ký, quản lý trạng thái và chiết khấu của các shop.</p></div></div>
+<div class="alert alert-success" th:if="${success}" th:text="${success}"></div><div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+<div class="row">
+    <div class="col-md-3 mb-4" th:each="state : ${stats}"><div class="card border-left-primary shadow h-100"><div class="card-body"><div class="text-xs font-weight-bold text-primary mb-1" th:text="${state.key}"></div><div class="h4 mb-0 font-weight-bold text-gray-800" th:text="${state.value}"></div></div></div></div>
+</div>
+<div class="card shadow mb-4"><div class="card-header"><h2 class="h6 m-0 font-weight-bold text-primary">Chiết khấu mặc định của sàn</h2></div><div class="card-body">
+    <form class="form-inline" th:action="@{/admin/shops/commission}" method="post"><label class="mr-3" for="default-rate">Tỷ lệ (%)</label><input class="form-control mr-3" id="default-rate" name="rate" type="number" min="0" max="100" step="0.01" th:value="${defaultRate}" required><button class="btn btn-primary" type="submit">Lưu chiết khấu</button></form>
+    <small class="text-muted d-block mt-2">Áp dụng cho các shop chưa thiết lập mức chiết khấu riêng.</small>
+</div></div>
+<div class="card shadow mb-4"><div class="card-header"><h2 class="h6 m-0 font-weight-bold text-primary">Danh sách shop</h2></div><div class="card-body">
+    <form class="form-row align-items-end mb-4" th:action="@{/admin/shops}" method="get">
+        <div class="col-md-6 mb-2"><label for="keyword">Tên shop hoặc tài khoản</label><input class="form-control" id="keyword" name="keyword" th:value="${keyword}" maxlength="100" placeholder="Tìm shop..."></div>
+        <div class="col-md-3 mb-2"><label for="status">Trạng thái</label><select class="form-control" id="status" name="status"><option value="">Tất cả trạng thái</option><option th:each="s : ${T(com.example.shoptech.entity.ShopStatus).values()}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option></select></div>
+        <div class="col-md-3 mb-2"><button class="btn btn-primary" type="submit">Tìm kiếm</button> <a class="btn btn-outline-secondary" th:href="@{/admin/shops}">Xóa lọc</a></div>
+    </form>
+    <div class="table-responsive"><table class="table table-bordered mb-0"><thead><tr><th>Shop</th><th>Chủ shop</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Chiết khấu</th><th></th></tr></thead><tbody>
+        <tr th:each="shop : ${shops}"><td><a th:href="@{/admin/shops/{id}(id=${shop.id})}" th:text="${shop.name}"></a></td><td th:text="${shop.owner.username}"></td><td th:text="${#temporals.format(shop.submittedAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')),'dd/MM/yyyy HH:mm')}"></td><td><span class="badge badge-light border" th:text="${shop.status}"></span></td><td th:text="${shop.commissionRate != null ? shop.commissionRate + '%' : 'Mặc định (' + defaultRate + '%)'}"></td><td><a class="btn btn-sm btn-outline-primary" th:href="@{/admin/shops/{id}(id=${shop.id})}">Xem chi tiết</a></td></tr>
+        <tr th:if="${shops.empty}"><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy shop.</td></tr>
+    </tbody></table></div>
+    <nav class="d-flex align-items-center justify-content-between mt-3" aria-label="Phân trang shop"><span th:text="'Tổng ' + ${shops.totalElements} + ' shop'"></span><div><a class="btn btn-sm btn-outline-secondary" th:if="${shops.hasPrevious()}" th:href="@{/admin/shops(keyword=${keyword},status=${status},page=${shops.number-1})}">Trang trước</a><span class="mx-2" th:text="'Trang ' + ${shops.number+1}"></span><a class="btn btn-sm btn-outline-secondary" th:if="${shops.hasNext()}" th:href="@{/admin/shops(keyword=${keyword},status=${status},page=${shops.number+1})}">Trang sau</a></div></nav>
+</div></div>
+</main></body></html>

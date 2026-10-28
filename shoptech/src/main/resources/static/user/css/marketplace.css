@@ -1,0 +1,25 @@
+.shop-summary-section { padding:28px 0 0; }
+.shop-summary { display:flex; align-items:flex-start; gap:22px; padding:26px; border:1px solid #e4e7ed; border-left:4px solid #d10024; background:#fff; }
+.shop-symbol { display:flex; align-items:center; justify-content:center; flex:0 0 64px; height:64px; border-radius:50%; background:#fff1f3; color:#d10024; font-size:28px; }
+.shop-summary-content { flex:1; min-width:0; }
+.shop-eyebrow { color:#8d99ae; margin:0 0 7px; font-size:12px; }
+.shop-summary h1 { font-size:26px; line-height:1.35; margin:0 0 12px; overflow-wrap:anywhere; }
+.shop-facts { display:flex; flex-wrap:wrap; gap:12px 24px; color:#5b6476; font-size:13px; }
+.shop-facts i { color:#d10024; }
+.shop-introduction { margin-top:16px; }
+.shop-introduction summary { display:list-item; cursor:pointer; color:#2b2d42; font-size:13px; }
+.shop-introduction p { white-space:pre-line; overflow-wrap:anywhere; line-height:1.7; margin:12px 0 0; }
+.shop-all-products { flex:0 0 auto; padding:10px 14px; border:1px solid #e4e7ed; border-radius:3px; font-size:12px; }
+.catalog-shop-select { width:100%; max-width:100%; }
+.catalog-shop-name { margin:8px 0 0; font-size:12px; color:#d10024; overflow-wrap:anywhere; }
+.catalog-selected-shop { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; padding:12px 15px; background:#f9f9fb; border:1px solid #e4e7ed; }
+.catalog-selected-shop span { min-width:0; overflow-wrap:anywhere; }
+.catalog-selected-shop > a { flex:0 0 auto; color:#d10024; }
+.product .product-body .product-shop { margin:0 0 12px; min-height:36px; font-size:12px; line-height:18px; }
+.product-shop a { display:flex; align-items:flex-start; justify-content:center; gap:6px; }
+.product-shop i { flex:0 0 auto; margin-top:2px; color:#d10024; }
+.product-shop span { overflow-wrap:anywhere; min-width:0; }
+@media(max-width:991px) { .shop-summary { flex-wrap:wrap; } .shop-all-products { margin-left:86px; } }
+@media(max-width:600px) { .shop-summary { padding:18px; gap:14px; } .shop-symbol { flex-basis:44px; height:44px; font-size:20px; } .shop-summary h1 { font-size:21px; } .shop-summary-content { flex-basis:calc(100% - 58px); } .shop-all-products { margin-left:58px; } .catalog-selected-shop { flex-wrap:wrap; } .product .product-body .product-shop { font-size:11px; } }
+
+.product-sold { min-height:18px; color:#8d99ae; font-size:12px; margin:0 0 12px; }

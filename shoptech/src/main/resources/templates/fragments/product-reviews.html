@@ -1,0 +1,14 @@
+<!doctype html><html xmlns:th="http://www.thymeleaf.org"><body>
+<section id="product-reviews" th:fragment="reviews" class="community-reviews" th:attr="data-reviews-product=${product.id}" aria-label="Đánh giá sản phẩm">
+ <div class="review-heading"><div><h3>Đánh giá sản phẩm</h3><p data-review-summary>Đang tải đánh giá...</p></div>
+ <button type="button" class="favorite-button favorite-detail" th:attr="data-favorite=${product.id}" aria-pressed="false"><i class="fa fa-heart-o" aria-hidden="true"></i> <span>Yêu thích</span></button></div>
+ <p data-review-message role="status" aria-live="polite"></p>
+ <form data-review-form hidden enctype="multipart/form-data" class="review-form">
+  <h4>Chia sẻ trải nghiệm của bạn</h4>
+  <label for="review-rating">Đánh giá</label><select id="review-rating" name="rating" class="input-select" required><option value="">Chọn số sao</option><option value="5">5 sao — Rất hài lòng</option><option value="4">4 sao — Hài lòng</option><option value="3">3 sao — Bình thường</option><option value="2">2 sao — Chưa hài lòng</option><option value="1">1 sao — Rất không hài lòng</option></select>
+  <label for="review-content">Bình luận</label><textarea id="review-content" name="content" class="input" minlength="50" maxlength="2000" rows="4" required placeholder="Chia sẻ về chất lượng và trải nghiệm sử dụng (tối thiểu 50 ký tự)..."></textarea>
+  <label for="review-files">Ảnh / video (không bắt buộc)</label><input id="review-files" type="file" name="files" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" aria-describedby="review-file-help"><small id="review-file-help">Tối đa 3 ảnh (5 MB/ảnh) và 1 video (20 MB). Tổng tối đa 25 MB.</small>
+  <div data-review-preview class="review-media"></div><button class="primary-btn" type="submit">Gửi đánh giá</button>
+ </form>
+ <div data-review-list></div><nav data-review-paging class="review-paging" aria-label="Phân trang đánh giá"></nav>
+</section></body></html>

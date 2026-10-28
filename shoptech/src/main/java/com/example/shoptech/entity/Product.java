@@ -8,12 +8,39 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "products")
+@Table(name = "products", uniqueConstraints=@UniqueConstraint(name="uq_products_shop_sku",columnNames={"shop_id","sku"}))
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "shop_id", nullable = false)
+    private Shop shop;
+
+    @Column(name = "is_blocked", nullable = false)
+    private Boolean isBlocked = false;
+
+    @Column(name = "moderation_reason", length = 1000)
+    private String moderationReason;
+
+    @Column(name = "moderated_by")
+    private Long moderatedBy;
+
+    @Column(name = "moderated_at")
+    private OffsetDateTime moderatedAt;
+
+    public Shop getShop() { return shop; }
+    public void setShop(Shop shop) { this.shop = shop; }
+    public Boolean getIsBlocked() { return isBlocked; }
+    public void setIsBlocked(Boolean blocked) { isBlocked = blocked; }
+    public String getModerationReason() { return moderationReason; }
+    public void setModerationReason(String reason) { moderationReason = reason; }
+    public Long getModeratedBy() { return moderatedBy; }
+    public void setModeratedBy(Long userId) { moderatedBy = userId; }
+    public OffsetDateTime getModeratedAt() { return moderatedAt; }
+    public void setModeratedAt(OffsetDateTime at) { moderatedAt = at; }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)
@@ -25,7 +52,7 @@ public class Product {
     @Column(nullable = false, unique = true, length = 255)
     private String slug;
 
-    @Column(unique = true, length = 50)
+    @Column(length = 50)
     private String sku;
 
     @Column(columnDefinition = "TEXT")

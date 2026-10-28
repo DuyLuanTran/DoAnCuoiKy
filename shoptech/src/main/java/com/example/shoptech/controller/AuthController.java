@@ -84,16 +84,6 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/")
-    public String home(Authentication authentication) {
-        if (authentication != null
-                && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken)) {
-            return redirectAfterLogin(authentication);
-        }
-        return "user/index";
-    }
-
     @GetMapping("/admin")
     public String adminDashboard(Model model, Authentication authentication) {
         model.addAttribute("adminName", authentication.getName());
@@ -101,14 +91,7 @@ public class AuthController {
     }
 
     @GetMapping("/user/home")
-    public String userHome(Model model, Authentication authentication) {
-        return userService.findByUsername(authentication.getName())
-                .map(user -> {
-                    model.addAttribute("account", user);
-                    return "user/home";
-                })
-                .orElse("redirect:/login?error");
-    }
+    public String userHome(){return "redirect:/";}
 
     @GetMapping("/account")
     public String account(Authentication authentication, Model model) {
@@ -198,6 +181,8 @@ public class AuthController {
     private String redirectAfterLogin(Authentication authentication) {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
-        return isAdmin ? "redirect:/admin" : "redirect:/user/home";
+        boolean isSeller = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_SELLER".equals(authority.getAuthority()));
+        return isAdmin ? "redirect:/admin" : isSeller ? "redirect:/seller" : "redirect:/";
     }
 }

@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Đơn hàng | ShopTech</title>
-<th:block th:replace="~{fragments/commerce :: head}"/><link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"></head>
-<body><header id="header"><div class="container"><a th:href="@{/products}" class="logo"><img th:src="@{/user/img/logo.png}" alt="ShopTech"></a></div></header>
+<th:block th:replace="~{fragments/commerce :: head}"/><link rel="stylesheet" th:href="@{/user/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/user/css/style.css}"><link rel="stylesheet" th:href="@{/user/css/font-awesome.min.css}"><style th:replace="~{user/store :: style}"></style></head>
+<body><th:block th:replace="~{fragments/commerce :: storeHeader}"></th:block>
 <main class="section container"><nav th:replace="~{fragments/commerce :: links}"></nav><h1>Lịch sử đơn hàng</h1>
-<p th:if="${orders.empty}">Chưa có đơn hàng.</p><div class="table-responsive"><table class="table" th:unless="${orders.empty}"><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+<p th:if="${orders.empty}">Chưa có đơn hàng.</p><div class="table-responsive"><table class="table" th:unless="${orders.empty}"><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Giá trị đặt ban đầu</th><th>Trạng thái</th></tr></thead>
 <tbody><tr th:each="order : ${orders}"><td><a th:href="@{/orders/{id}(id=${order.id})}" th:text="${order.code}"></a></td><td th:text="${#temporals.format(order.createdAt.atZoneSameInstant(T(java.time.ZoneId).of('Asia/Ho_Chi_Minh')), 'dd/MM/yyyy HH:mm')}"></td><td th:text="${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')} + ' ₫'"></td><td th:text="${order.status}"></td></tr></tbody></table></div>
 <nav><a th:if="${orders.hasPrevious()}" th:href="@{/orders(page=${orders.number-1})}">Trang trước</a> <span th:text="${orders.number+1}"></span> <a th:if="${orders.hasNext()}" th:href="@{/orders(page=${orders.number+1})}">Trang sau</a></nav>
 </main><th:block th:replace="~{fragments/commerce :: scripts}"/></body></html>

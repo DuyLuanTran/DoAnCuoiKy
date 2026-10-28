@@ -1,10 +1,8 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Chi tiết đơn hàng','orders',~{::main})}"><body><main>
-<th:block th:replace="~{fragments/commerce :: head}"/><a th:href="@{/admin/orders}">Danh sách đơn hàng</a>
-<link rel="stylesheet" th:href="@{/user/css/order-detail.css}">
-<section th:replace="~{user/order-detail :: detail}"></section>
-<form id="order-status-form" th:unless="${#sets.isEmpty(nextStatuses)}" th:attr="data-order-id=${order.id},data-expected=${order.status}">
-<label for="status">Chuyển trạng thái</label><select id="status" name="status" class="form-control"><option th:each="s : ${nextStatuses}" th:value="${s}" th:text="${s}"></option></select><button type="submit" class="btn btn-primary mt-2">Cập nhật trạng thái</button>
-</form><p th:if="${#sets.isEmpty(nextStatuses)}">Đơn hàng đã kết thúc, không thể chỉnh sửa.</p>
-<th:block th:replace="~{fragments/commerce :: scripts}"/><script th:src="@{/admin/js/orders.js}" defer></script>
+<a class="d-inline-block mb-3" th:href="@{/admin/orders}"><i class="fas fa-arrow-left"></i> Đơn hàng toàn sàn</a>
+<div class="alert alert-info">Trạng thái và giao hàng do Seller của từng shop xử lý.</div>
+<div class="alert alert-warning" th:if="${#lists.contains(shopOrders.![historicalImport],true)}">Đơn nhập từ dữ liệu cũ: giữ nguyên tổng tiền, chiết khấu lịch sử là 0%. Chi tiết lịch sử có thể cần đối soát.</div>
+<section th:replace="~{seller/order-detail :: info}"></section>
+<div class="card shadow mb-4"><div class="card-header"><h2 class="h6 m-0 font-weight-bold text-primary">Đơn theo shop</h2></div><div class="card-body table-responsive"><table class="table"><thead><tr><th>Shop</th><th>Đơn shop</th><th>Trạng thái</th><th>Tổng tiền</th><th>Chiết khấu</th><th>Còn lại cho shop</th></tr></thead><tbody><tr th:each="s : ${shopOrders}"><td th:text="${s.shopName}"></td><td th:text="${s.code}"></td><td th:text="${s.status}"></td><td th:text="${#numbers.formatDecimal(s.total,1,'POINT',0,'COMMA')}+' ₫'"></td><td th:text="${#numbers.formatDecimal(s.commissionAmount,1,'POINT',0,'COMMA')}+' ₫'"></td><td th:text="${#numbers.formatDecimal(s.sellerAmount,1,'POINT',0,'COMMA')}+' ₫'"></td></tr></tbody></table></div></div>
 </main></body></html>

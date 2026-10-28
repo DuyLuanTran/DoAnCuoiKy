@@ -1,0 +1,8 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/admin-layout :: layout('Thông tin shop','shop',~{::main})}"><body><main>
+<h1 class="h3 mb-4 text-gray-800">Thông tin shop</h1>
+<div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+<div class="alert alert-warning" th:if="${shop.status.name() != 'ACTIVE'}">Shop đang bị khóa hoặc chưa hoạt động. Bạn chưa thể chỉnh sửa thông tin. <span th:text="${shop.suspensionReason}"></span></div>
+<div class="card shadow mb-4"><div class="card-header"><h2 class="h6 m-0 font-weight-bold text-primary" th:text="${shop.name}"></h2></div><div class="card-body">
+<form th:action="@{/seller/shop}" method="post" th:object="${shopForm}"><fieldset th:disabled="${shop.status.name() != 'ACTIVE'}"><th:block th:replace="~{fragments/shop-form :: fields}"></th:block><button class="btn btn-primary" type="submit">Lưu thông tin shop</button></fieldset></form>
+</div></div>
+</main></body></html>

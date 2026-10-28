@@ -1,276 +1,82 @@
 package com.example.shoptech.service;
 
 import com.example.shoptech.dto.ProductForm;
-import com.example.shoptech.entity.Category;
-import com.example.shoptech.entity.Product;
-import com.example.shoptech.repository.CategoryRepository;
-import com.example.shoptech.repository.ProductRepository;
-import jakarta.validation.ConstraintViolation;
+import com.example.shoptech.entity.*;
+import com.example.shoptech.repository.*;
 import jakarta.validation.Validator;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.web.server.ResponseStatusException;
 import java.text.Normalizer;
 import java.time.OffsetDateTime;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
-@Service
-@Transactional(readOnly = true)
+@Service @Transactional(readOnly=true)
 public class ProductServiceImpl implements ProductService {
-
-    private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
-    private final CloudinaryService cloudinaryService;
+    private final ProductRepository products;
+    private final CategoryRepository categories;
+    private final CloudinaryService images;
     private final Validator validator;
-
-    public ProductServiceImpl(
-            ProductRepository productRepository,
-            CategoryRepository categoryRepository,
-            CloudinaryService cloudinaryService,
-            Validator validator
-    ) {
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-        this.cloudinaryService = cloudinaryService;
-        this.validator = validator;
+    private final ShopService shops;
+    private final UserRepository users;
+    private final ProductModerationHistoryRepository history;
+    public ProductServiceImpl(ProductRepository products,CategoryRepository categories,CloudinaryService images,Validator validator,ShopService shops,UserRepository users,ProductModerationHistoryRepository history){
+        this.products=products;this.categories=categories;this.images=images;this.validator=validator;this.shops=shops;this.users=users;this.history=history;
     }
-
-    @Override
-    public Page<Product> searchAdmin(
-            String keyword,
-            Long categoryId,
-            Pageable pageable
-    ) {
-        String normalizedKeyword = keyword == null
-                ? ""
-                : keyword.strip();
-
-        return productRepository.searchAdmin(
-                normalizedKeyword,
-                categoryId,
-                pageable
-        );
+    @Override @PreAuthorize("hasRole('ADMIN')")
+    public Page<Product> searchAdmin(String keyword,Long categoryId,Long shopId,Pageable page){return products.searchMarketplace(keyword.strip(),categoryId,shopId,false,page);}
+    @Override @PreAuthorize("hasRole('ADMIN')")
+    public Product getById(Long id){return products.findByIdAndIsDeletedFalse(id).orElseThrow(()->notFound());}
+    @Override @PreAuthorize("hasRole('ADMIN')")
+    public List<ProductModerationHistory> moderationHistory(Long id){getById(id);return history.findByProductIdOrderByCreatedAtDescIdDesc(id);}
+    @Override @Transactional @PreAuthorize("hasRole('ADMIN')")
+    public void moderate(String username,Long id,boolean blocked,boolean expectedBlocked,String reason){
+        Product p=products.lockById(id).filter(x->!Boolean.TRUE.equals(x.getIsDeleted())).orElseThrow(()->notFound());
+        if(Boolean.TRUE.equals(p.getIsBlocked())!=expectedBlocked)throw new ResponseStatusException(HttpStatus.CONFLICT,"Sản phẩm đã được cập nhật. Hãy tải lại trang.");
+        String note=reason==null?"":reason.strip();
+        if(note.isEmpty()||note.length()>1000)throw new IllegalArgumentException("Nhập lý do từ 1 đến 1000 ký tự.");
+        User actor=users.findByUsernameAndIsDeletedFalse(username).orElseThrow();
+        p.setIsBlocked(blocked);p.setModerationReason(blocked?note:null);p.setModeratedBy(actor.getId());p.setModeratedAt(OffsetDateTime.now());
+        ProductModerationHistory event=new ProductModerationHistory();event.setProduct(p);event.setActor(actor);event.setBlocked(blocked);event.setReason(note);history.save(event);products.flush();
     }
-
-    @Override
-    public Product getById(Long id) {
-        return productRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy sản phẩm."
-                ));
+    @Override @PreAuthorize("hasRole('SELLER')")
+    public Page<Product> searchSeller(String username,String keyword,Long categoryId,boolean trash,Pageable page){return products.searchMarketplace(keyword.strip(),categoryId,shops.requiredOwn(username).getId(),trash,page);}
+    @Override @PreAuthorize("hasRole('SELLER')")
+    public Product getSellerProduct(String username,Long id){return products.findByIdAndShopId(id,shops.requiredOwn(username).getId()).orElseThrow(()->notFound());}
+    @Override @PreAuthorize("hasRole('SELLER')")
+    public ProductForm getSellerForm(String username,Long id){Product p=getSellerProduct(username,id);if(Boolean.TRUE.equals(p.getIsDeleted()))throw notFound();return toForm(p);}
+    @Override @Transactional @PreAuthorize("hasRole('SELLER')")
+    public void createSeller(String username,ProductForm form){
+        Shop shop=shops.lockOwnActive(username);validate(form);validateSku(form.getSku(),shop.getId(),null);
+        Category category=category(form.getCategoryId(),null);
+        if(form.getImageFile()==null||form.getImageFile().isEmpty())throw new IllegalArgumentException("Vui lòng chọn ảnh chính cho sản phẩm.");
+        images.validateImage(form.getImageFile());
+        Product p=new Product();p.setShop(shop);apply(p,form,category);p.setSlug(slug(form.getName()));
+        p.setMainImage(images.uploadImage(form.getImageFile()).secureUrl());products.saveAndFlush(p);
     }
-
-    @Override
-    public ProductForm getFormById(Long id) {
-        Product product = getById(id);
-
-        ProductForm form = new ProductForm();
-        form.setCategoryId(product.getCategory().getId());
-        form.setName(product.getName());
-        form.setSku(product.getSku());
-        form.setDescription(product.getDescription());
-        form.setSpecifications(product.getSpecifications());
-        form.setPrice(product.getPrice());
-        form.setDiscountPrice(product.getDiscountPrice());
-        form.setStockQuantity(product.getStockQuantity());
-        form.setActive(Boolean.TRUE.equals(product.getIsActive()));
-
-        return form;
+    @Override @Transactional @PreAuthorize("hasRole('SELLER')")
+    public void updateSeller(String username,Long id,ProductForm form){
+        Shop shop=shops.lockOwnActive(username);Product p=lockedOwn(shop,id,false);validate(form);validateSku(form.getSku(),shop.getId(),id);
+        Category category=category(form.getCategoryId(),p.getCategory().getId());
+        if(form.getImageFile()!=null&&!form.getImageFile().isEmpty()){images.validateImage(form.getImageFile());p.setMainImage(images.uploadImage(form.getImageFile()).secureUrl());}
+        apply(p,form,category);products.flush();
     }
-
-    @Override
-    @Transactional
-    public void create(ProductForm form) {
-        validateForm(form);
-        validateSku(form.getSku(), null);
-
-        Category category = getUsableCategory(
-                form.getCategoryId(),
-                null
-        );
-
-        MultipartFile imageFile = form.getImageFile();
-
-        if (!hasNewImage(imageFile)) {
-            throw new IllegalArgumentException(
-                    "Vui lòng chọn ảnh chính cho sản phẩm."
-            );
-        }
-
-        cloudinaryService.validateImage(imageFile);
-
-        Product product = new Product();
-        applyForm(product, form, category);
-        product.setSlug(generateUniqueSlug(form.getName()));
-
-        CloudinaryService.UploadedImage uploadedImage =
-                cloudinaryService.uploadImage(imageFile);
-
-        product.setMainImage(uploadedImage.secureUrl());
-
-        productRepository.saveAndFlush(product);
+    @Override @Transactional @PreAuthorize("hasRole('SELLER')")
+    public void trashSeller(String username,Long id){Product p=lockedOwn(shops.lockOwnActive(username),id,false);p.setIsDeleted(true);p.setDeletedAt(OffsetDateTime.now());products.flush();}
+    @Override @Transactional @PreAuthorize("hasRole('SELLER')")
+    public void restoreSeller(String username,Long id){Product p=lockedOwn(shops.lockOwnActive(username),id,true);p.setIsDeleted(false);p.setDeletedAt(null);products.flush();}
+    private Product lockedOwn(Shop shop,Long id,boolean deleted){
+        Product p=products.lockById(id).orElseThrow(()->notFound());
+        if(!p.getShop().getId().equals(shop.getId())||Boolean.TRUE.equals(p.getIsDeleted())!=deleted)throw notFound();return p;
     }
-
-    @Override
-    @Transactional
-    public void update(Long id, ProductForm form) {
-        validateForm(form);
-
-        Product product = getById(id);
-        validateSku(form.getSku(), id);
-
-        Category category = getUsableCategory(
-                form.getCategoryId(),
-                product.getCategory().getId()
-        );
-
-        MultipartFile imageFile = form.getImageFile();
-
-        if (hasNewImage(imageFile)) {
-            cloudinaryService.validateImage(imageFile);
-        }
-
-        applyForm(product, form, category);
-
-        if (hasNewImage(imageFile)) {
-            CloudinaryService.UploadedImage uploadedImage =
-                    cloudinaryService.uploadImage(imageFile);
-
-            product.setMainImage(uploadedImage.secureUrl());
-        }
-
-        // Giữ nguyên slug và ảnh cũ nếu không chọn ảnh mới.
-        productRepository.saveAndFlush(product);
-    }
-
-    @Override
-    @Transactional
-    public void moveToTrash(Long id) {
-        Product product = getById(id);
-
-        product.setIsDeleted(true);
-        product.setDeletedAt(OffsetDateTime.now());
-
-        productRepository.saveAndFlush(product);
-    }
-
-    private void applyForm(
-            Product product,
-            ProductForm form,
-            Category category
-    ) {
-        product.setCategory(category);
-        product.setName(form.getName());
-        product.setSku(form.getSku());
-        product.setDescription(form.getDescription());
-        product.setSpecifications(form.getSpecifications());
-        product.setPrice(form.getPrice());
-        product.setDiscountPrice(form.getDiscountPrice());
-        product.setStockQuantity(form.getStockQuantity());
-        product.setIsActive(form.isActive());
-    }
-
-    private void validateForm(ProductForm form) {
-        if (form == null) {
-            throw new IllegalArgumentException(
-                    "Dữ liệu sản phẩm không hợp lệ."
-            );
-        }
-
-        String errorMessage = validator.validate(form)
-                .stream()
-                .map(ConstraintViolation::getMessage)
-                .sorted()
-                .findFirst()
-                .orElse(null);
-
-        if (errorMessage != null) {
-            throw new IllegalArgumentException(errorMessage);
-        }
-    }
-
-    private void validateSku(String sku, Long productId) {
-        if (sku == null || sku.isBlank()) {
-            return;
-        }
-
-        boolean duplicated = productId == null
-                ? productRepository.existsBySku(sku)
-                : productRepository.existsBySkuAndIdNot(
-                        sku,
-                        productId
-                );
-
-        if (duplicated) {
-            throw new IllegalArgumentException(
-                    "Mã sản phẩm đã tồn tại."
-            );
-        }
-    }
-
-    private Category getUsableCategory(
-            Long categoryId,
-            Long currentCategoryId
-    ) {
-        Category category = categoryRepository
-                .findByIdAndIsDeletedFalse(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Danh mục không tồn tại hoặc đã bị xóa."
-                ));
-
-        boolean keepingCurrentCategory =
-                Objects.equals(categoryId, currentCategoryId);
-
-        if (!Boolean.TRUE.equals(category.getIsActive())
-                && !keepingCurrentCategory) {
-            throw new IllegalArgumentException(
-                    "Vui lòng chọn danh mục đang bật."
-            );
-        }
-
-        return category;
-    }
-
-    private boolean hasNewImage(MultipartFile file) {
-        return file != null && !file.isEmpty();
-    }
-
-    private String generateUniqueSlug(String name) {
-        String baseSlug = Normalizer.normalize(
-                        name,
-                        Normalizer.Form.NFD
-                )
-                .replaceAll("\\p{M}+", "")
-                .replace('đ', 'd')
-                .replace('Đ', 'D')
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-+|-+$", "");
-
-        if (baseSlug.isBlank()) {
-            baseSlug = "san-pham";
-        }
-
-        String slug = baseSlug;
-        int suffix = 2;
-
-        while (productRepository.existsBySlug(slug)) {
-            String suffixText = "-" + suffix;
-            int maxBaseLength = 255 - suffixText.length();
-
-            String shortenedBase = baseSlug.substring(
-                    0,
-                    Math.min(baseSlug.length(), maxBaseLength)
-            );
-
-            slug = shortenedBase + suffixText;
-            suffix++;
-        }
-
-        return slug;
-    }
+    private Category category(Long id,Long current){Category c=categories.findByIdAndIsDeletedFalse(id).orElseThrow(()->new IllegalArgumentException("Danh mục không tồn tại hoặc đã bị xóa."));if(!Boolean.TRUE.equals(c.getIsActive())&&!Objects.equals(id,current))throw new IllegalArgumentException("Vui lòng chọn danh mục đang bật.");return c;}
+    private void validate(ProductForm f){if(f==null)throw new IllegalArgumentException("Dữ liệu sản phẩm không hợp lệ.");String message=validator.validate(f).stream().map(v->v.getMessage()).sorted().findFirst().orElse(null);if(message!=null)throw new IllegalArgumentException(message);}
+    private void validateSku(String sku,Long shopId,Long id){if(sku!=null&&(id==null?products.existsByShopIdAndSku(shopId,sku):products.existsByShopIdAndSkuAndIdNot(shopId,sku,id)))throw new IllegalArgumentException("Mã sản phẩm đã tồn tại trong shop, kể cả sản phẩm trong thùng rác.");}
+    private void apply(Product p,ProductForm f,Category c){p.setCategory(c);p.setName(f.getName());p.setSku(f.getSku());p.setDescription(f.getDescription());p.setSpecifications(f.getSpecifications());p.setPrice(f.getPrice());p.setDiscountPrice(f.getDiscountPrice());p.setStockQuantity(f.getStockQuantity());p.setIsActive(f.isActive());}
+    private ProductForm toForm(Product p){ProductForm f=new ProductForm();f.setCategoryId(p.getCategory().getId());f.setName(p.getName());f.setSku(p.getSku());f.setDescription(p.getDescription());f.setSpecifications(p.getSpecifications());f.setPrice(p.getPrice());f.setDiscountPrice(p.getDiscountPrice());f.setStockQuantity(p.getStockQuantity());f.setActive(Boolean.TRUE.equals(p.getIsActive()));return f;}
+    private String slug(String name){String base=Normalizer.normalize(name,Normalizer.Form.NFD).replaceAll("\\p{M}+","").replace('đ','d').replace('Đ','D').toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+","-").replaceAll("^-+|-+$","");if(base.isBlank())base="san-pham";base=base.substring(0,Math.min(base.length(),240));return base+"-"+UUID.randomUUID().toString().substring(0,8);}
+    private ResponseStatusException notFound(){return new ResponseStatusException(HttpStatus.NOT_FOUND,"Không tìm thấy sản phẩm.");}
 }

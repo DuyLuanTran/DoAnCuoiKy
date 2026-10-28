@@ -1,6 +1,7 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org"><body>
 <th:block th:fragment="head">
+    <link rel="stylesheet" th:href="@{/user/css/community.css}">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="commerce-user" th:content="${#authentication.name}">
@@ -41,6 +42,7 @@
         </button>
     </section>
     <script th:src="@{/user/js/commerce.js}" defer></script>
+    <script th:src="@{/user/js/community.js}" defer></script>
     <script th:src="@{/user/js/order-notifications.js}" defer></script>
     <script th:src="@{/user/js/chatbot.js}" defer></script>
 </th:block>

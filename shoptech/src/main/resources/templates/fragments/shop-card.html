@@ -1,0 +1,6 @@
+<!doctype html><html xmlns:th="http://www.thymeleaf.org"><body>
+<article class="market-shop-card" th:fragment="card(shop,count)">
+ <div class="market-shop-icon" aria-hidden="true"><i class="fa fa-shopping-bag"></i></div>
+ <div><h3><a th:href="@{/shops/{slug}(slug=${shop.slug})}" th:text="${shop.name}"></a></h3><p class="text-muted"><strong th:text="${count}"></strong> sản phẩm</p><p class="market-shop-intro" th:if="${!#strings.isEmpty(shop.description)}" th:text="${#strings.abbreviate(shop.description,160)}"></p><a class="market-shop-link" th:href="@{/shops/{slug}(slug=${shop.slug})}">Xem shop <i class="fa fa-angle-right" aria-hidden="true"></i></a></div>
+</article>
+</body></html>

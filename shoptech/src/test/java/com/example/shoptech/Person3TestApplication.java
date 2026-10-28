@@ -46,7 +46,7 @@ public class Person3TestApplication {
                                 "revenue",jdbc.queryForList("select coalesce(sum(total_amount),0) as revenue,count(*) as completed_orders from orders where order_status='COMPLETED' and is_deleted=false")));
                     }).build();
         }
-        @Bean CommandLineRunner browserData(UserRepository users,RoleRepository roles,CategoryRepository categories,ProductRepository products,PasswordEncoder encoder) {
+        @Bean CommandLineRunner browserData(UserRepository users,RoleRepository roles,CategoryRepository categories,ProductRepository products,ShopRepository shops,PasswordEncoder encoder) {
             return args->{
                 Role customer=roles.save(new Role(null,"ROLE_USER","Test"));
                 Role admin=roles.save(new Role(null,"ROLE_ADMIN","Test"));
@@ -55,7 +55,7 @@ public class Person3TestApplication {
                 users.save(User.builder().username("person3-admin").email("admin@example.invalid").fullName("Quản trị thử nghiệm").password(password).roles(Set.of(admin)).build());
                 users.save(User.builder().username("person3-other").email("other@example.invalid").fullName("Khách hàng đối chứng").password(password).roles(Set.of(customer)).build());
                 Category category=new Category();category.setName("Thiết bị thử nghiệm");category.setSlug("test-devices");categories.save(category);
-                Product product=new Product();product.setName("Laptop thử nghiệm");product.setSlug("test-laptop");product.setCategory(category);product.setPrice(new BigDecimal("15000000"));product.setDiscountPrice(new BigDecimal("14000000"));product.setStockQuantity(5);products.save(product);
+                Product product=new Product();product.setShop(TestShops.active(shops,users.findByUsernameAndIsDeletedFalse("person3-admin").orElseThrow(),"person3-shop"));product.setName("Laptop thử nghiệm");product.setSlug("test-laptop");product.setCategory(category);product.setPrice(new BigDecimal("15000000"));product.setDiscountPrice(new BigDecimal("14000000"));product.setStockQuantity(5);products.save(product);
             };
         }
     }
