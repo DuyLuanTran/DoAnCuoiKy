@@ -17,9 +17,9 @@ public class SellerOrderService {
     @jakarta.persistence.PersistenceContext private jakarta.persistence.EntityManager entityManager;
     private final ShopService shops; private final ShopOrderRepository shopOrders;
     private final OrderRepository orders; private final ProductRepository products;
-    private final UserRepository users;private final ShopOrderHistoryRepository history;private final ApplicationEventPublisher events;
-    public SellerOrderService(ShopService shops,ShopOrderRepository shopOrders,OrderRepository orders,ProductRepository products,UserRepository users,ShopOrderHistoryRepository history,ApplicationEventPublisher events){
-        this.shops=shops;this.shopOrders=shopOrders;this.orders=orders;this.products=products;this.users=users;this.history=history;this.events=events;
+    private final UserRepository users;private final ShopOrderHistoryRepository history;private final ApplicationEventPublisher events;private final StoredOrderNotificationService notifications;
+    public SellerOrderService(ShopService shops,ShopOrderRepository shopOrders,OrderRepository orders,ProductRepository products,UserRepository users,ShopOrderHistoryRepository history,ApplicationEventPublisher events,StoredOrderNotificationService notifications){
+        this.shops=shops;this.shopOrders=shopOrders;this.orders=orders;this.products=products;this.users=users;this.history=history;this.events=events;this.notifications=notifications;
     }
     public Page<ShopOrderDto> search(String username,String keyword,OrderStatus status,int page){
         if(keyword.length()>100)throw error(HttpStatus.BAD_REQUEST,"Từ khóa tối đa 100 ký tự.");
@@ -56,7 +56,7 @@ public class SellerOrderService {
         if(input.status()==OrderStatus.COMPLETED&&"COD".equals(parent.getPaymentMethod()))current.setPaymentStatus("PAID");
         if(input.status()==OrderStatus.REFUNDED)current.setPaymentStatus("REFUNDED");
         ShopOrderHistory audit=new ShopOrderHistory();audit.setShopOrder(current);audit.setActor(users.findByUsernameAndIsDeletedFalse(username).orElseThrow());audit.setPreviousStatus(current.getStatus());audit.setNewStatus(input.status());audit.setReason(note);history.save(audit);
-        current.setStatus(input.status());aggregate(parent);orders.flush();
+        current.setStatus(input.status());aggregate(parent);orders.flush();notifications.changed(current);
         events.publishEvent(new OrderStatusChanged(parent.getUser().getUsername(),new OrderStatusNotification(parent.getId(),parent.getOrderCode(),parent.getOrderStatus())));
         return detail(current);
     }
@@ -72,7 +72,7 @@ public class SellerOrderService {
         case RETURN_REQUESTED->List.of(OrderStatus.REFUNDED);
         default->List.of();
     }));}
-    private void aggregate(Order parent){
+    static void aggregate(Order parent){
         List<ShopOrder> all=parent.getShopOrders();
         // The least advanced live shipment represents progress; individual shop states are always shown.
         List<OrderStatus> live=all.stream().map(ShopOrder::getStatus).filter(s->s!=OrderStatus.CANCELLED&&s!=OrderStatus.REFUNDED).toList();

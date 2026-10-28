@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
-@RestControllerAdvice(assignableTypes = {CartController.class, OrderController.class, AdminOrderController.class, RevenueController.class, ProductCommunityController.class, ReviewManagementController.class})
+@RestControllerAdvice(assignableTypes = {CartController.class, OrderController.class, SellerOrderController.class, AdminOrderController.class, RevenueController.class, ProductCommunityController.class, ReviewManagementController.class})
 public class CommerceExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ProblemDetail> validation(IllegalArgumentException e) { return ResponseEntity.badRequest().body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,e.getMessage())); }

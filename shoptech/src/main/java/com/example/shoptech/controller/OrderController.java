@@ -26,7 +26,12 @@ public class OrderController {
     @GetMapping("/orders/{id}") public String detail(Principal user,@PathVariable Long id,Model model) {
         model.addAttribute("order",orders.owned(user.getName(),id));
         model.addAttribute("shopOrders",orders.ownedShops(user.getName(),id));
+        model.addAttribute("shopHistory",orders.ownedShopHistory(user.getName(),id));
         model.addAttribute("categories", categories.getAvailableCategories());
         return "user/order-detail";
+    }
+    @PostMapping("/orders/{id}/shops/{shopOrderId}/return") public String requestReturn(Principal user,@PathVariable Long id,@PathVariable Long shopOrderId,@RequestParam String reason) {
+        orders.requestReturn(user.getName(),id,shopOrderId,reason);
+        return "redirect:/orders/"+id;
     }
 }

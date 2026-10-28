@@ -105,6 +105,19 @@ class AuthRegisterIntegrationTest {
     }
 
     @Test
+    void loginFormAcceptsCsrfAndRejectsInvalidCredentials() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"_csrf\"")));
+        mockMvc.perform(post("/login")
+                        .with(csrf())
+                        .param("username", "unknown-login-probe")
+                        .param("password", "not-a-real-password"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?error"));
+    }
+
+    @Test
     void getRegisterPage_withShopRegistrationRedirect_shouldShowNotice() throws Exception {
         mockMvc.perform(get("/register").param("redirect", "/shop-registration"))
                 .andExpect(status().isOk())

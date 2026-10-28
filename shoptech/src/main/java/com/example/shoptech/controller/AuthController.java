@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -40,6 +41,11 @@ public class AuthController {
     private final JwtService jwtService;
     private final PasswordResetService passwordResetService;
     private final boolean secureCookie;
+
+    @ModelAttribute
+    public void initializeCsrfToken(CsrfToken csrfToken) {
+        csrfToken.getToken();
+    }
 
     public AuthController(
             UserService userService,
@@ -89,7 +95,7 @@ public class AuthController {
                     return "redirect:" + redirect;
                 }
             }
-            return redirectAfterLogin(authentication);
+            return redirectAfterLogin();
         } catch (AuthenticationException exception) {
             String redirectParam = (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//"))
                     ? "&redirect=" + java.net.URLEncoder.encode(redirect, java.nio.charset.StandardCharsets.UTF_8)
@@ -209,11 +215,7 @@ public class AuthController {
         }
     }
 
-    private String redirectAfterLogin(Authentication authentication) {
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
-        boolean isSeller = authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_SELLER".equals(authority.getAuthority()));
-        return isAdmin ? "redirect:/admin" : isSeller ? "redirect:/seller" : "redirect:/";
+    private String redirectAfterLogin() {
+        return "redirect:/products";
     }
 }

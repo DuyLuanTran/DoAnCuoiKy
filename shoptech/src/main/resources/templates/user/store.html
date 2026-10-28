@@ -537,6 +537,10 @@
                 <!-- Tài khoản -->
                 <div class="col-md-3 clearfix">
                     <div class="header-ctn">
+                        <div sec:authorize="isAuthenticated()" class="notification-root" data-notification-root>
+                            <button type="button" class="notification-toggle" data-notification-toggle aria-label="Thông báo" aria-expanded="false"><i class="fa fa-bell-o" aria-hidden="true"></i><span>Thông báo <b data-notification-count hidden></b></span></button>
+                            <div class="notification-panel" data-notification-panel hidden></div>
+                        </div>
                         <div><a th:href="@{/favorites}"><i class="fa fa-heart-o" aria-hidden="true"></i><span>Yêu thích</span></a></div>
                         <div>
                             <a th:href="@{/cart}">

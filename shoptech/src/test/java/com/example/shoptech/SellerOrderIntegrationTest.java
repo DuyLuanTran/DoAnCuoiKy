@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SellerOrderIntegrationTest {
  @Autowired MockMvc mvc;@Autowired UserRepository users;@Autowired ShopRepository shops;@Autowired CategoryRepository categories;@Autowired ProductRepository products;
  @Autowired ShopOrderRepository shipments;@Autowired ShopOrderHistoryRepository audits;@Autowired OrderRepository orders;
+ @Autowired OrderNotificationRepository notificationRows;@Autowired StoredOrderNotificationService notifications;
  @Autowired OrderService checkout;@Autowired CartService cart;@Autowired SellerOrderService seller;@Autowired RevenueService revenue;
  Shop alice,bob;Product a,b;OrderDto parent;Long aid,bid;
  @BeforeEach void seed(){
@@ -43,6 +44,31 @@ class SellerOrderIntegrationTest {
   ShopOrder s=shipments.findById(aid).orElseThrow();assertEquals(0,s.getCommissionAmount().compareTo(new BigDecimal("20")));assertEquals(0,s.getSellerAmount().compareTo(new BigDecimal("180")));assertEquals(1,s.getOrder().getDetails().stream().filter(d->d.getShopOrder().getId().equals(aid)).count());
   alice.setCommissionRate(new BigDecimal("99"));a.setPrice(new BigDecimal("999"));assertEquals(0,s.getCommissionRate().compareTo(new BigDecimal("10")));assertEquals(0,seller.detail("alice",aid).items().get(0).price().compareTo(new BigDecimal("100")));
   cart.add("buyer",a.getId(),1);String key=UUID.randomUUID().toString();OrderDto next=checkout.checkout("buyer",input(key));assertEquals(next.id(),checkout.checkout("buyer",input(key)).id());assertEquals(3,shipments.count());
+ }
+ @Test void persistedNotificationsAreScopedAndReturnRequestReachesSeller() throws Exception {
+  assertEquals(1,notifications.inbox("buyer",0).unread());
+  assertEquals(1,notifications.inbox("alice",0).unread());
+  assertEquals(1,notifications.inbox("bob",0).unread());
+  mvc.perform(get("/notifications").with(user("bob").roles("SELLER")))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.items.length()").value(1));
+  var first=notificationRows.findByRecipientUsernameOrderByCreatedAtDescIdDesc("alice",org.springframework.data.domain.PageRequest.of(0,10)).getContent().get(0);
+  assertThrows(org.springframework.web.server.ResponseStatusException.class,()->notifications.open("bob",first.getId()));
+  mvc.perform(post("/notifications/"+first.getId()+"/open").with(user("alice").roles("SELLER")))
+      .andExpect(status().isForbidden());
+  mvc.perform(post("/notifications/"+first.getId()+"/open").with(user("alice").roles("SELLER")).with(csrf()))
+      .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/seller/orders/"+aid));
+  assertEquals(0,notifications.inbox("alice",0).unread());
+  complete();
+  assertEquals(5,notifications.inbox("buyer",0).unread());
+  assertThrows(org.springframework.web.server.ResponseStatusException.class,()->checkout.requestReturn("bob",parent.id(),aid,"Không đúng sản phẩm"));
+  mvc.perform(post("/orders/"+parent.id()+"/shops/"+aid+"/return")
+      .with(user("buyer").roles("USER")).with(csrf()).param("reason","Sản phẩm bị lỗi khi sử dụng"))
+      .andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/orders/"+parent.id()));
+  assertEquals(OrderStatus.RETURN_REQUESTED,shipments.findById(aid).orElseThrow().getStatus());
+  assertEquals(1,notifications.inbox("alice",0).unread());
+  assertTrue(notifications.inbox("alice",0).items().get(0).message().contains("trả hàng"));
+  mvc.perform(get("/orders/"+parent.id()).with(user("buyer").roles("USER")))
+      .andExpect(status().isOk()).andExpect(content().string(containsString("Lịch sử trạng thái của shop")));
  }
  @Test void sellerPagesAndFiltersOnlyExposeOwnShipment() throws Exception {
   mvc.perform(get("/seller/orders").with(user("alice").roles("SELLER"))).andExpect(status().isOk()).andExpect(content().string(containsString("/seller/orders/"+aid))).andExpect(content().string(not(containsString("/seller/orders/"+bid))));
@@ -81,7 +107,8 @@ class SellerOrderIntegrationTest {
  @Test void userPermissionsAndCsrfAndRequiredReason() throws Exception {
   mvc.perform(get("/seller/orders").with(user("buyer").roles("USER"))).andExpect(status().isForbidden());
   mvc.perform(patch("/seller/orders/"+aid+"/status").with(user("alice").roles("SELLER")).contentType("application/json").content("{\"expectedStatus\":\"PENDING\",\"status\":\"CONFIRMED\"}")).andExpect(status().isForbidden());
-  mvc.perform(patch("/seller/orders/"+aid+"/status").with(user("alice").roles("SELLER")).with(csrf()).contentType("application/json").content("{\"expectedStatus\":\"PENDING\",\"status\":\"CANCELLED\"}")).andExpect(status().isBadRequest());assertEquals(8,a.getStockQuantity());
+  mvc.perform(patch("/seller/orders/"+aid+"/status").with(user("alice").roles("SELLER")).with(csrf()).contentType("application/json").content("{\"expectedStatus\":\"PENDING\",\"status\":\"CANCELLED\"}"))
+      .andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail").value("Vui lòng nhập lý do hủy hoặc trả hàng / hoàn tiền."));assertEquals(8,a.getStockQuantity());
  }
  @Test void buyerSeesBothShopStatusesAndAnotherBuyerCannotRead() throws Exception {
   change(aid,OrderStatus.PENDING,OrderStatus.CONFIRMED);

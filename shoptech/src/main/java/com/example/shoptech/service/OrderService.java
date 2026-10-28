@@ -7,6 +7,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -18,8 +19,12 @@ public class OrderService {
     private final CartItemRepository items; private final ProductRepository products;
     private final OrderRepository orders;
     private final ShopService shops;
-    public OrderService(UserRepository users, CartRepository carts, CartItemRepository items, ProductRepository products, OrderRepository orders,ShopService shops) {
-        this.users=users; this.carts=carts; this.items=items; this.products=products; this.orders=orders;this.shops=shops;
+    private final StoredOrderNotificationService notifications;
+    private final ShopOrderHistoryRepository shopHistory;
+    private final ShopOrderRepository shopOrders;
+    private final ApplicationEventPublisher events;
+    public OrderService(UserRepository users, CartRepository carts, CartItemRepository items, ProductRepository products, OrderRepository orders,ShopService shops,StoredOrderNotificationService notifications,ShopOrderHistoryRepository shopHistory,ShopOrderRepository shopOrders,ApplicationEventPublisher events) {
+        this.users=users; this.carts=carts; this.items=items; this.products=products; this.orders=orders;this.shops=shops;this.notifications=notifications;this.shopHistory=shopHistory;this.shopOrders=shopOrders;this.events=events;
     }
     @Transactional
     public OrderDto checkout(String username, OrderDto.Checkout input) {
@@ -63,7 +68,7 @@ public class OrderService {
             group.setCommissionAmount(group.getSubtotal().multiply(group.getCommissionRate()).divide(new BigDecimal("100"),2,java.math.RoundingMode.HALF_UP));
             group.setSellerAmount(group.getTotal().subtract(group.getCommissionAmount()));
         }
-        orders.saveAndFlush(order); items.deleteAll(lines); items.flush();
+        orders.saveAndFlush(order); notifications.placed(order); items.deleteAll(lines); items.flush();
         return detail(order);
     }
     @jakarta.persistence.PersistenceContext private jakarta.persistence.EntityManager entityManager;
@@ -77,6 +82,36 @@ public class OrderService {
     public List<com.example.shoptech.dto.ShopOrderDto> ownedShops(String username,Long id){
         Order order=orders.findByIdAndUserUsernameAndIsDeletedFalse(id,username).orElseThrow(()->error(HttpStatus.NOT_FOUND,"Không tìm thấy đơn hàng."));
         return order.getShopOrders().stream().map(SellerOrderService::summary).toList();
+    }
+    public record StatusStep(OrderStatus status, java.time.OffsetDateTime at) {}
+    public Map<Long,List<StatusStep>> ownedShopHistory(String username,Long id){
+        Order order=orders.findByIdAndUserUsernameAndIsDeletedFalse(id,username).orElseThrow(()->error(HttpStatus.NOT_FOUND,"Không tìm thấy đơn hàng."));
+        Map<Long,List<StatusStep>> result=new LinkedHashMap<>();
+        for(ShopOrder shopOrder:order.getShopOrders()){
+            List<StatusStep> steps=new ArrayList<>();
+            var history=shopHistory.findByShopOrderIdOrderByIdAsc(shopOrder.getId());
+            OrderStatus initial=Boolean.TRUE.equals(shopOrder.getHistoricalImport())
+                    ? (history.isEmpty()?shopOrder.getStatus():history.get(0).getPreviousStatus()) : OrderStatus.PENDING;
+            steps.add(new StatusStep(initial,shopOrder.getCreatedAt()));
+            history.forEach(h->steps.add(new StatusStep(h.getNewStatus(),h.getCreatedAt())));
+            result.put(shopOrder.getId(),steps);
+        }
+        return result;
+    }
+    @Transactional
+    public void requestReturn(String username, Long orderId, Long shopOrderId, String reason) {
+        Order parent=orders.lockActiveById(orderId).orElseThrow(()->error(HttpStatus.NOT_FOUND,"Không tìm thấy đơn hàng."));
+        if(!parent.getUser().getUsername().equals(username))throw error(HttpStatus.NOT_FOUND,"Không tìm thấy đơn hàng.");
+        ShopOrder shopOrder=shopOrders.findByIdAndOrderIsDeletedFalse(shopOrderId).orElseThrow(()->error(HttpStatus.NOT_FOUND,"Không tìm thấy đơn của shop."));
+        if(!shopOrder.getOrder().getId().equals(orderId))throw error(HttpStatus.NOT_FOUND,"Không tìm thấy đơn của shop.");
+        entityManager.refresh(shopOrder);
+        if(shopOrder.getStatus()!=OrderStatus.COMPLETED)throw error(HttpStatus.CONFLICT,"Chỉ yêu cầu trả hàng cho đơn đã giao thành công.");
+        String note=reason==null?"":reason.strip();
+        if(note.length()<10||note.length()>1000)throw error(HttpStatus.BAD_REQUEST,"Lý do trả hàng cần từ 10 đến 1000 ký tự.");
+        ShopOrderHistory audit=new ShopOrderHistory();audit.setShopOrder(shopOrder);audit.setActor(parent.getUser());
+        audit.setPreviousStatus(shopOrder.getStatus());audit.setNewStatus(OrderStatus.RETURN_REQUESTED);audit.setReason(note);shopHistory.save(audit);
+        shopOrder.setStatus(OrderStatus.RETURN_REQUESTED);SellerOrderService.aggregate(parent);orders.flush();notifications.changed(shopOrder);
+        events.publishEvent(new OrderStatusChanged(username,new com.example.shoptech.dto.OrderStatusNotification(parent.getId(),parent.getOrderCode(),parent.getOrderStatus())));
     }
     static OrderDto.Summary summary(Order o) { return new OrderDto.Summary(o.getId(),o.getOrderCode(),o.getUser().getUsername(),o.getRecipientName(),o.getTotalAmount(),o.getOrderStatus(),o.getCreatedAt()); }
     static OrderDto detail(Order o) {
