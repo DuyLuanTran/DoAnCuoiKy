@@ -13,7 +13,7 @@ Nhánh bàn giao: `fe/seller-rate-favorite`. Tài liệu này mô tả phạm vi
 
 ## Trạng thái database / migration
 
-**Chưa cập nhật Supabase của nhóm. Code mới phụ thuộc schema mới; không triển khai code này với schema cũ.**
+**Supabase của nhóm đã được cập nhật V001–V004 ngày 28/10/2026.** Trước khi áp dụng, đã sao lưu schema `public` thành dump custom, khôi phục sang DB thử nghiệm riêng và chạy đủ bốn migration thành công. Sau khi áp dụng, DB thật có 1 shop, 12/12 sản phẩm thuộc shop, 10/10 đơn con và 17/17 dòng hàng liên kết; số lượng user, sản phẩm và đơn giữ nguyên (6, 12, 10). Bản sao lưu nằm trên máy triển khai tại `.local/backups/supabase-before-marketplace-20261028-101402.dump` (SHA-256 `02CA8D3819AE4B5CC509E83FE3E387D6D799AE85DE22B3CCF47C1CC438C903F7`), không nằm trên GitHub.
 
 Các script được bàn giao tại `src/main/resources/db/migrations/`:
 
@@ -24,19 +24,19 @@ Các script được bàn giao tại `src/main/resources/db/migrations/`:
 | 3 | V003__shop_orders.sql | Đơn con theo shop, lịch sử trạng thái, dữ liệu chiết khấu được chốt |
 | 4 | V004__reviews_and_favorites.sql | Yêu thích, đánh giá, ảnh/video, lịch sử kiểm duyệt |
 
-Đây là các migration đã kiểm thử trên bản sao riêng, có guard chỉ cho database `shoptech_marketplace`; **chưa phải migration triển khai Supabase**. Không xóa guard rồi chạy thẳng. Khi triển khai thật cần đối chiếu schema hiện tại, sao lưu, thử trên bản sao mới, lựa chọn chủ shop cho danh mục cũ và đối soát dữ liệu trước.
+Các file trong `migrations/` vẫn có guard chỉ cho sandbox `shoptech_marketplace`. Bản SQL chính xác đã áp dụng lên Supabase, gồm cả bốn bước trong một transaction, được lưu tại `src/main/resources/db/deploy/V001__supabase_marketplace.sql` (SHA-256 `3CA364E9F507A456DC8548432B6FD5968F36A35F5091D726346B0331C9352888`). **Không chạy lại** trên DB đã cập nhật.
 
-- V001 gán shop ShopTech ban đầu cho admin đang hoạt động đầu tiên và thêm ROLE_SELLER cho tài khoản đó. Cần chọn chủ shop phù hợp trước khi triển khai thật.
-- Dữ liệu đơn cũ được giữ nguyên, chiết khấu lịch sử bằng 0. Một số đơn cũ trong bản sao có tổng chi tiết lệch tiền hàng của đơn; những đơn này bị chặn thao tác seller cho tới khi đối soát, không tự sửa số tiền.
+- V001 đã gán shop ShopTech ban đầu cho admin đang hoạt động duy nhất và thêm ROLE_SELLER cho tài khoản đó. Nhóm nên xác nhận lại chủ shop này phù hợp với phân quyền thực tế.
+- Dữ liệu đơn cũ được giữ nguyên, chiết khấu lịch sử bằng 0. Có 5 đơn cũ có tổng chi tiết lệch tiền hàng của đơn; những đơn này bị chặn thao tác seller cho tới khi đối soát, không tự sửa số tiền.
 - Không dùng `db/schema.sql` để nâng cấp DB đang có dữ liệu: file đó chứa DROP.
 - Không nhập tài khoản demo, DB sandbox, file dump hoặc `.local/media` lên DB thật. Upload khi triển khai thật dùng Cloudinary của nhóm.
 
 ## Khôi phục
 
 - Code: quay lại commit base của PR để đồng bộ với schema cũ; nếu PR đã merge dùng commit revert phù hợp của nhóm.
-- Database: trước triển khai thật phải tạo và xác minh một bản sao lưu Supabase mới. Khi cần quay lại, dừng ghi dữ liệu, khôi phục bản sao lưu vào DB phục hồi để kiểm tra, rồi chuyển code và DB về cùng mốc.
+- Database: bản sao lưu ngay trước migration đã tạo và xác minh tại đường dẫn ở trên. Khi cần quay lại, dừng ghi dữ liệu, khôi phục bản sao lưu vào DB phục hồi để kiểm tra, rồi chuyển code và DB về cùng mốc.
 - Revert Git không hoàn tác database. Nếu đã phát sinh đơn mới sau migration, cần giữ và đối soát dữ liệu đó trước khi khôi phục; không restore đè tùy tiện.
-- Các dump của lần thử chỉ nằm trên máy thực hiện trong `.local/backups`, không có trên GitHub và không thay thế backup production.
+- Bản dump production chỉ nằm trên máy thực hiện trong `.local/backups`, không có trên GitHub; nhóm nên chuyển vào nơi lưu trữ bảo mật của nhóm.
 
 ## Kiểm thử đã có
 
