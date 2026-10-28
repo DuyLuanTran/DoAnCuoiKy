@@ -57,7 +57,10 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(@RequestParam(required = false) String redirect, Model model) {
+        if (redirect != null && !redirect.isBlank()) {
+            model.addAttribute("redirect", redirect);
+        }
         return "admin/login";
     }
 
@@ -65,6 +68,7 @@ public class AuthController {
     public String authenticate(
             @RequestParam String username,
             @RequestParam String password,
+            @RequestParam(required = false) String redirect,
             jakarta.servlet.http.HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -78,9 +82,19 @@ public class AuthController {
                     .maxAge(jwtService.getValiditySeconds())
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            if (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//")) {
+                boolean isAdmin = authentication.getAuthorities().stream()
+                        .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+                if (!isAdmin) {
+                    return "redirect:" + redirect;
+                }
+            }
             return redirectAfterLogin(authentication);
         } catch (AuthenticationException exception) {
-            return "redirect:/login?error";
+            String redirectParam = (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//"))
+                    ? "&redirect=" + java.net.URLEncoder.encode(redirect, java.nio.charset.StandardCharsets.UTF_8)
+                    : "";
+            return "redirect:/login?error" + redirectParam;
         }
     }
 
@@ -108,16 +122,24 @@ public class AuthController {
     }
 
     @GetMapping("/register")
-    public String registerForm(Model model) {
+    public String registerForm(@RequestParam(required = false) String redirect, Model model) {
         model.addAttribute("registerForm", new RegisterDTO());
+        if (redirect != null && !redirect.isBlank()) {
+            model.addAttribute("redirect", redirect);
+        }
         return "admin/register";
     }
 
     @PostMapping("/register")
     public String register(
+            @RequestParam(required = false) String redirect,
             @Valid @ModelAttribute("registerForm") RegisterDTO registerForm,
-            BindingResult bindingResult) {
+            BindingResult bindingResult,
+            Model model) {
         if (bindingResult.hasErrors()) {
+            if (redirect != null && !redirect.isBlank()) {
+                model.addAttribute("redirect", redirect);
+            }
             return "admin/register";
         }
 
@@ -125,10 +147,16 @@ public class AuthController {
             userService.registerUser(registerForm);
         } catch (IllegalArgumentException exception) {
             bindingResult.reject("registration.failed", exception.getMessage());
+            if (redirect != null && !redirect.isBlank()) {
+                model.addAttribute("redirect", redirect);
+            }
             return "admin/register";
         }
 
-        return "redirect:/login?registered";
+        String redirectParam = (redirect != null && redirect.startsWith("/") && !redirect.startsWith("//"))
+                ? "&redirect=" + java.net.URLEncoder.encode(redirect, java.nio.charset.StandardCharsets.UTF_8)
+                : "";
+        return "redirect:/login?registered" + redirectParam;
     }
 
     @GetMapping("/forgot-password")

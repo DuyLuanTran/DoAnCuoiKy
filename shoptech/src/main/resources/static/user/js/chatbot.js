@@ -22,10 +22,43 @@
         }
     }
 
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatBotReply(rawText) {
+        if (!rawText) return '';
+        let escaped = escapeHtml(rawText);
+
+        // Bold **text**
+        escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // Markdown links [text](url)
+        escaped = escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="chat-link" target="_self">$1</a>');
+
+        // Local paths like /register, /login, /orders, /cart, /checkout, /store, /shop-registration, /products/xxx
+        escaped = escaped.replace(/(^|[\s(])(\/(?:register|login|forgot-password|account|cart|checkout|orders|favorites|store|shop-registration|seller|products\/[a-zA-Z0-9_\-]+))([.,!?;:\s)]|$)/g,
+            '$1<a href="$2" class="chat-link">$2</a>$3');
+
+        // Line breaks
+        escaped = escaped.replace(/\n/g, '<br>');
+
+        return escaped;
+    }
+
     function addMessage(text, type, extraClass = '') {
         const message = document.createElement('p');
         message.className = `shoptech-chat__bubble shoptech-chat__bubble--${type} ${extraClass}`.trim();
-        message.textContent = text;
+        if (type === 'bot' && extraClass !== 'pending') {
+            message.innerHTML = formatBotReply(text);
+        } else {
+            message.textContent = text;
+        }
         messagesElement.append(message);
         messagesElement.scrollTop = messagesElement.scrollHeight;
         return message;
@@ -46,7 +79,7 @@
         input.disabled = true;
         const sendButton = form.querySelector('button');
         sendButton.disabled = true;
-        const pendingMessage = addMessage('Đang soạn câu trả lời...', 'bot');
+        const pendingMessage = addMessage('Đang soạn câu trả lời...', 'bot', 'pending');
 
         try {
             const headers = { 'Content-Type': 'application/json' };
@@ -76,7 +109,8 @@
                 );
             }
 
-            pendingMessage.textContent = result.reply;
+            pendingMessage.innerHTML = formatBotReply(result.reply);
+            pendingMessage.classList.remove('pending');
             history.push(
                 { role: 'user', text: message },
                 { role: 'model', text: result.reply }
